@@ -189,6 +189,17 @@ void main() {
       expect(rules.endReason, contains('提前'));
     });
 
+    test('清台后打进黑八但先碰错球判负', () {
+      final rules = MatchRules()..isBreak = false;
+      rules.groups[0] = PlayerGroup.solids;
+      rules.groups[1] = PlayerGroup.stripes;
+      rules.tableOpen = false;
+      final ruling = rules.apply(outcome(pottedIds: [8]), onEight: true);
+      expect(ruling.gameOver, isTrue);
+      expect(ruling.winner, 1);
+      expect(rules.endReason, contains('犯规'));
+    });
+
     test('黑八与母球同时落袋判负', () {
       final rules = MatchRules()..isBreak = false;
       rules.groups[0] = PlayerGroup.solids;

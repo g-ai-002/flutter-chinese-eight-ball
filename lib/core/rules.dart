@@ -103,14 +103,14 @@ class MatchRules {
     // 提前落袋、母球同时落袋或开球外的犯规都判负。
     if (outcome.eightPotted) {
       over = true;
-      if (onEight && !outcome.cuePotted) {
+      if (onEight && !foul && !outcome.cuePotted) {
         winner = shootingPlayer;
         endReason = '清台后打进黑八';
       } else {
         winner = opponent;
         endReason = outcome.cuePotted
             ? '黑八与母球同时落袋'
-            : (onEight ? '打进黑八时母球落袋' : '黑八提前落袋');
+            : (onEight ? '打进黑八时犯规' : '黑八提前落袋');
       }
       ballInHand = false;
       return ShotRuling(
