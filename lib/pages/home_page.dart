@@ -195,24 +195,28 @@ class _TopBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppConstants.appName,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Text(
-              AppConstants.appNameEn,
-              style: TextStyle(
-                fontSize: 8.5,
-                letterSpacing: 1.2,
-                color: colors.onSurfaceVariant,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                AppConstants.appName,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleSmall,
               ),
-            ),
-          ],
+              Text(
+                AppConstants.appNameEn,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  letterSpacing: 1.2,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
-        const Spacer(),
         IconButton(
           tooltip: darkMode ? '切换浅色' : '切换深色',
           onPressed: () => settings.setDarkMode(!darkMode),
