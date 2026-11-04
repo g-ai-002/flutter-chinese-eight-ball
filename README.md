@@ -28,7 +28,7 @@ v0.1.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flut
 | Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.1.0-windows-x86_64.zip` |
 | Web | `flutter-chinese-eight-ball-0.1.0-web.zip`（解压后起静态服务器） |
 
-在线试玩：<http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/src/branch/tea-pages>
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.1.0/` 与 `debug/`），可直接部署为静态站点。
 
 ## 开发
 
