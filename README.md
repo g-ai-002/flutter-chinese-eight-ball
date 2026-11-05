@@ -22,18 +22,19 @@
 
 ## 下载
 
-v0.2.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.2.0)
+v0.2.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.2.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-chinese-eight-ball-0.2.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.2.0-windows-x86_64.zip` |
-| Web | `flutter-chinese-eight-ball-0.2.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-chinese-eight-ball-0.2.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.2.1-windows-x86_64.zip` |
+| Web | `flutter-chinese-eight-ball-0.2.1-web.zip`（解压后起静态服务器） |
 
-Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.2.0/` 与 `debug/`），可直接部署为静态站点。
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.2.1/` 与 `debug/`），可直接部署为静态站点。
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.2.1 | 重构练习状态、命中判定与对局页组件，修复宽屏指袋前可点击击球的问题 |
 | 0.2.0 | 新增黑八指袋与自由练习模式，支持任意摆球与重打上一杆 |
 | 0.1.1 | 重构球台绘制、规则裁定、AI 候选与对局页组件，修复 AI 重复出杆并补充边界用例 |
 | 0.1.0 | 首个可玩版本：物理、规则、三档 AI、双人同屏与三端构建发布 |
