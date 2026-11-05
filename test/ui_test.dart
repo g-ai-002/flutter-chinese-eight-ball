@@ -42,7 +42,7 @@ void main() {
     expect(find.text('人机对战'), findsOneWidget);
     expect(find.text('双人对战'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.1.0'), findsOneWidget);
+    expect(find.textContaining('v0.1.1'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
