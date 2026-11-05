@@ -66,6 +66,7 @@ void main() {
       difficulty: AiDifficulty.hard,
     );
     expect(shot.targetBallId, 8);
+    expect(shot.pocketIndex, isNotNull);
   });
 
   test('没有可进攻线路时仍会给出合法方向', () {

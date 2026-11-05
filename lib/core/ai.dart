@@ -268,7 +268,7 @@ class EightBallAi {
     simulation.strike(angle, power);
     final outcome = simulation.simulateToRest(limit: 9);
 
-    var score = _pottedScore(outcome, group, onEight);
+    var score = _pottedScore(outcome, group, onEight, pocketIndex);
     score += _contactScore(outcome, group, onEight);
     score += _cuePositionScore(simulation, group);
 
@@ -281,14 +281,21 @@ class EightBallAi {
     );
   }
 
-  double _pottedScore(ShotOutcome outcome, PlayerGroup? group, bool onEight) {
+  double _pottedScore(
+    ShotOutcome outcome,
+    PlayerGroup? group,
+    bool onEight,
+    int calledPocket,
+  ) {
     var score = 0.0;
     for (final event in outcome.potted) {
       final id = event.ballId;
       if (id == 0) {
         score -= _scratchPenalty;
       } else if (id == 8) {
-        score += onEight ? _eightWinBonus : -_eightLossPenalty;
+        // 指袋规则下，只有落进指定袋口才算赢。
+        final pocketMatched = event.pocketIndex == calledPocket;
+        score += onEight && pocketMatched ? _eightWinBonus : -_eightLossPenalty;
       } else if (group == null || MatchRules.kindOfBall(id) == group.kind) {
         score += _ownPotBonus;
       } else {

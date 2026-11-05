@@ -48,8 +48,13 @@ class MatchRules {
 
   int opponentOf(int player) => 1 - player;
 
-  /// 判定一杆的结果。[onEight] 表示击球前是否已经清完本方花色。
-  ShotRuling apply(ShotOutcome outcome, {required bool onEight}) {
+  /// 判定一杆的结果。[onEight] 表示击球前是否已经清完本方花色，
+  /// [calledPocket] 是攻打黑八时指定的袋口编号（0-5）。
+  ShotRuling apply(
+    ShotOutcome outcome, {
+    required bool onEight,
+    int? calledPocket,
+  }) {
     shotNumber++;
     final shooter = current;
     final wasBreak = isBreak;
@@ -73,29 +78,43 @@ class MatchRules {
         shooter,
         onEight: onEight,
         foulReason: foulReason,
+        calledPocket: calledPocket,
       );
     }
     if (foulReason != null) return _settleFoul(foulReason);
     return _settleLegalShot(outcome, shooter);
   }
 
-  /// 黑八落袋即终局：清台后合法打进获胜，其余情况判负。
+  /// 黑八落袋即终局：清台后打进指定袋口获胜，其余情况判负。
   ShotRuling _settleEightBall(
     ShotOutcome outcome,
     int shooter, {
     required bool onEight,
     required String? foulReason,
+    required int? calledPocket,
   }) {
     final foul = foulReason != null;
+    final eightPocket = outcome.potted
+        .firstWhere((event) => event.ballId == 8)
+        .pocketIndex;
+    final pocketMatched = calledPocket != null && calledPocket == eightPocket;
     over = true;
-    if (onEight && !foul && !outcome.cuePotted) {
+    if (onEight && !foul && !outcome.cuePotted && pocketMatched) {
       winner = shooter;
       endReason = '清台后打进黑八';
     } else {
       winner = opponentOf(shooter);
-      endReason = outcome.cuePotted
-          ? '黑八与母球同时落袋'
-          : (onEight ? '打进黑八时犯规' : '黑八提前落袋');
+      if (outcome.cuePotted) {
+        endReason = '黑八与母球同时落袋';
+      } else if (!onEight) {
+        endReason = '黑八提前落袋';
+      } else if (foulReason != null) {
+        endReason = '打进黑八时犯规：$foulReason';
+      } else if (calledPocket == null) {
+        endReason = '未指定袋口，黑八落袋判负';
+      } else {
+        endReason = '黑八落入非指定袋口';
+      }
     }
     ballInHand = false;
     return ShotRuling(

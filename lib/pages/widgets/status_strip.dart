@@ -18,7 +18,9 @@ class StatusStrip extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final last = controller.log.isEmpty ? '' : controller.log.last;
-    final turn = controller.isAiTurn ? '电脑回合' : '你的回合';
+    final turn = controller.isPractice
+        ? '自由练习'
+        : (controller.isAiTurn ? '电脑回合' : '你的回合');
     return Row(
       children: [
         Container(
@@ -31,9 +33,11 @@ class StatusStrip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                controller.isAiTurn
-                    ? Icons.smart_toy_outlined
-                    : Icons.person_outline,
+                controller.isPractice
+                    ? Icons.adjust
+                    : (controller.isAiTurn
+                          ? Icons.smart_toy_outlined
+                          : Icons.person_outline),
                 size: 13,
                 color: colors.primary,
               ),
@@ -61,7 +65,7 @@ class StatusStrip extends StatelessWidget {
         ),
         if (!compact)
           Text(
-            '第 ${controller.rules.shotNumber} 杆',
+            '第 ${controller.shotCount} 杆',
             style: theme.textTheme.labelSmall?.copyWith(
               color: colors.onSurfaceVariant,
             ),

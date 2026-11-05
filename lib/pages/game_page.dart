@@ -41,6 +41,7 @@ class _GamePageState extends State<GamePage> {
   SettingsProvider? _settings;
   EightBallGame? _game;
   bool _dialogOpen = false;
+  int? _dragBallId;
 
   @override
   void initState() {
@@ -108,7 +109,7 @@ class _GamePageState extends State<GamePage> {
             ),
             const SizedBox(height: 10),
             Text(
-              '共 ${rules.shotNumber} 杆',
+              '共 ${_controller.shotCount} 杆',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -138,11 +139,12 @@ class _GamePageState extends State<GamePage> {
   }
 
   Future<void> _confirmRestart() async {
+    final practice = widget.mode == GameMode.practice;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('重新开球？'),
-        content: const Text('当前比分与球局将清空，重新摆球开球。'),
+        title: Text(practice ? '重置球桌？' : '重新开球？'),
+        content: Text(practice ? '所有球回到初始摆球位置，练习杆数清零。' : '当前比分与球局将清空，重新摆球开球。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -173,7 +175,7 @@ class _GamePageState extends State<GamePage> {
           children: [
             Text(widget.mode.label),
             Text(
-              '中式黑八 · ${widget.difficulty.label}',
+              _subtitle,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: colors.onSurfaceVariant,
                 letterSpacing: 1,
@@ -191,7 +193,7 @@ class _GamePageState extends State<GamePage> {
             icon: const Icon(Icons.menu_book_outlined, size: 21),
           ),
           IconButton(
-            tooltip: '重新开球',
+            tooltip: widget.mode == GameMode.practice ? '重置球桌' : '重新开球',
             onPressed: _confirmRestart,
             icon: const Icon(Icons.restart_alt, size: 22),
           ),
@@ -284,9 +286,19 @@ class _GamePageState extends State<GamePage> {
   }
 
   bool get _canAim =>
-      _controller.phase == MatchPhase.aiming && _controller.isHumanTurn;
+      _controller.phase == MatchPhase.aiming &&
+      _controller.isHumanTurn &&
+      !_controller.isEditingBalls;
 
-  bool get _canShoot => _canAim;
+  bool get _canShoot =>
+      _canAim &&
+      (!_controller.needsPocketCall || _controller.calledPocket != null);
+
+  String get _subtitle => switch (widget.mode) {
+    GameMode.vsAi => '中式黑八 · ${widget.difficulty.label}',
+    GameMode.twoPlayers => '中式黑八 · 同屏对局',
+    GameMode.practice => '中式黑八 · 自由练习',
+  };
 
   Widget _buildTable(EightBallGame game, double maxWidth, double maxHeight) {
     const aspect = TableLayout.aspectRatio;
@@ -307,19 +319,37 @@ class _GamePageState extends State<GamePage> {
               onTapDown: (details) =>
                   _handlePointer(details.localPosition, size, tap: true),
               onPanStart: (details) =>
-                  _handlePointer(details.localPosition, size),
+                  _handlePointer(details.localPosition, size, startDrag: true),
               onPanUpdate: (details) =>
                   _handlePointer(details.localPosition, size),
               onPanEnd: (_) => _handlePointerEnd(size),
               child: const SizedBox.expand(),
             ),
           ),
+          if (widget.mode == GameMode.practice)
+            Positioned(
+              left: 6,
+              top: 6,
+              child: _PracticeToolbar(
+                editing: _controller.isEditingBalls,
+                canUndo: _controller.canUndoPracticeShot,
+                onToggleEdit: () => _controller.isEditingBalls
+                    ? _controller.endBallEdit()
+                    : _controller.beginBallEdit(),
+                onUndo: _controller.undoPracticeShot,
+              ),
+            ),
         ],
       ),
     );
   }
 
-  void _handlePointer(Offset local, Size size, {bool tap = false}) {
+  void _handlePointer(
+    Offset local,
+    Size size, {
+    bool tap = false,
+    bool startDrag = false,
+  }) {
     final layout = TableLayout(size);
     var point = layout.toTable(local);
     point = point.clamp(
@@ -329,12 +359,31 @@ class _GamePageState extends State<GamePage> {
       TableGeometry.height - TableGeometry.ballRadius,
     );
 
+    if (_controller.isEditingBalls) {
+      if (tap) return;
+      if (startDrag) _dragBallId = _nearestBallId(point);
+      final id = _dragBallId;
+      if (id != null) _controller.moveBall(id, point);
+      return;
+    }
+
     if (_controller.phase == MatchPhase.placingCue) {
       _placementPreview.value = point;
       if (tap) _tryPlaceCue(point);
       return;
     }
     if (!_canAim) return;
+
+    // 攻打黑八时点击袋口完成指袋，再正常瞄准。
+    if (tap && _controller.needsPocketCall) {
+      for (var index = 0; index < TableGeometry.pockets.length; index++) {
+        final pocket = TableGeometry.pockets[index];
+        if (pocket.distanceTo(point) < TableGeometry.pocketRadius * 2.6) {
+          _controller.setCalledPocket(index);
+          return;
+        }
+      }
+    }
 
     // 点击球体时自动吸附到球心，便于精确瞄准。
     if (tap) {
@@ -349,7 +398,22 @@ class _GamePageState extends State<GamePage> {
     _controller.aimAt(point);
   }
 
+  int? _nearestBallId(Vec2 point) {
+    int? nearest;
+    var distance = TableGeometry.ballRadius * 2.4;
+    for (final ball in _controller.balls) {
+      if (!ball.active) continue;
+      final current = ball.position.distanceTo(point);
+      if (current < distance) {
+        distance = current;
+        nearest = ball.id;
+      }
+    }
+    return nearest;
+  }
+
   void _handlePointerEnd(Size size) {
+    _dragBallId = null;
     if (_controller.phase != MatchPhase.placingCue) return;
     final preview = _placementPreview.value;
     _placementPreview.value = null;
@@ -365,6 +429,17 @@ class _GamePageState extends State<GamePage> {
 
   String _hintText() {
     final controller = _controller;
+    if (controller.isPractice) {
+      if (controller.isEditingBalls) return '摆球模式：拖动任意球调整位置';
+      if (controller.phase == MatchPhase.shooting) return '球在运动中…';
+      return '自由练习：拖动球台瞄准，可摆球或重打本杆';
+    }
+    if (controller.needsPocketCall) {
+      final called = controller.calledPocket;
+      return called == null
+          ? '攻打黑八：先点击袋口指定目标袋'
+          : '已指定 ${TableGeometry.pocketNames[called]} · 调整力度后击球';
+    }
     return switch (controller.phase) {
       MatchPhase.gameOver => '对局结束',
       MatchPhase.shooting => '球在运动中…',
@@ -372,5 +447,91 @@ class _GamePageState extends State<GamePage> {
       MatchPhase.placingCue => '自由球：拖动母球到合法位置',
       MatchPhase.aiming => controller.isHumanTurn ? '拖动球台瞄准，调整力度后击球' : '电脑瞄准中…',
     };
+  }
+}
+
+/// 练习模式浮层工具条：切换摆球与重打上一杆。
+class _PracticeToolbar extends StatelessWidget {
+  const _PracticeToolbar({
+    required this.editing,
+    required this.canUndo,
+    required this.onToggleEdit,
+    required this.onUndo,
+  });
+
+  final bool editing;
+  final bool canUndo;
+  final VoidCallback onToggleEdit;
+  final VoidCallback onUndo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _ToolChip(
+          icon: editing ? Icons.check : Icons.open_with,
+          label: editing ? '完成摆球' : '摆球',
+          active: editing,
+          onTap: onToggleEdit,
+        ),
+        const SizedBox(width: 6),
+        _ToolChip(
+          icon: Icons.undo,
+          label: '重打',
+          onTap: canUndo ? onUndo : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _ToolChip extends StatelessWidget {
+  const _ToolChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final enabled = onTap != null;
+    final foreground = active
+        ? colors.onPrimary
+        : (enabled ? colors.onSurface : colors.onSurfaceVariant);
+    return Material(
+      color: active ? colors.primary : colors.surface.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: foreground),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: foreground,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

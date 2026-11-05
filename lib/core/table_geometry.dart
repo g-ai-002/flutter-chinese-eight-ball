@@ -37,6 +37,16 @@ class TableGeometry {
     Vec2(width, height),
   ];
 
+  /// 袋口名称，顺序与 [pockets] 一致，用于指袋提示。
+  static const List<String> pocketNames = [
+    '左上角袋',
+    '上中袋',
+    '右上角袋',
+    '左下角袋',
+    '下中袋',
+    '右下角袋',
+  ];
+
   /// 开球摆球：8 号球在三角形中心，后排两个底角一全一花。
   static List<BallState> rackBalls() {
     const layout = <List<int>>[
@@ -80,6 +90,15 @@ class TableGeometry {
   static bool isValidCuePlacement(
     Vec2 position, {
     Iterable<BallState> obstacles = const [],
+  }) => isValidBallPlacement(position, obstacles: obstacles);
+
+  /// 任意球（含母球）的摆放合法性，用于练习模式的自由摆球。
+  ///
+  /// [ignoreId] 指定被移动的球号，避免它挡住自己。
+  static bool isValidBallPlacement(
+    Vec2 position, {
+    Iterable<BallState> obstacles = const [],
+    int? ignoreId,
   }) {
     const margin = ballRadius * 0.06;
     if (position.x < ballRadius + margin ||
@@ -94,7 +113,7 @@ class TableGeometry {
       }
     }
     for (final ball in obstacles) {
-      if (!ball.active || ball.isCue) continue;
+      if (!ball.active || ball.id == ignoreId) continue;
       if (position.distanceTo(ball.position) < ballRadius * 2 + 0.0005) {
         return false;
       }

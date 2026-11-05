@@ -101,6 +101,7 @@ class TableComponent extends PositionComponent {
     super.render(canvas);
     final layout = _layoutFor(Size(size.x, size.y));
     _tablePainter.paint(canvas, layout, settings.tableSkin);
+    _aimPainter.paintPocketTargets(canvas, layout, controller);
     _ballPainter.paintShadows(canvas, layout, controller.balls);
     for (final ball in controller.balls) {
       if (!ball.active) continue;

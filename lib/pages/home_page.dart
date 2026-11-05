@@ -135,6 +135,15 @@ class HomePage extends StatelessWidget {
       onTap: () => _startGame(context, settings, GameMode.twoPlayers),
     ),
     EntryTile(
+      leading: EntryBadge(
+        icon: Icons.adjust_outlined,
+        accent: colors.secondary,
+      ),
+      title: GameMode.practice.label,
+      subtitle: '任意摆球 · 重打同一杆',
+      onTap: () => _startGame(context, settings, GameMode.practice),
+    ),
+    EntryTile(
       leading: const EntryBadge(
         icon: Icons.menu_book_outlined,
         accent: appGold,

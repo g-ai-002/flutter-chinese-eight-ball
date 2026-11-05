@@ -41,8 +41,9 @@ void main() {
     expect(find.text('中式黑八'), findsWidgets);
     expect(find.text('人机对战'), findsOneWidget);
     expect(find.text('双人对战'), findsOneWidget);
+    expect(find.text('自由练习'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.1.1'), findsOneWidget);
+    expect(find.textContaining('v0.2.0'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
@@ -88,6 +89,31 @@ void main() {
     expect(find.text('击 球'), findsOneWidget);
     expect(find.text('玩家一'), findsWidgets);
     expect(find.text('玩家二'), findsWidgets);
+  });
+
+  testWidgets('练习模式渲染摆球与重打工具条', (tester) async {
+    await pumpPage(
+      tester,
+      const GamePage(
+        mode: GameMode.practice,
+        difficulty: AiDifficulty.normal,
+        humanSide: 0,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('自由练习'), findsWidgets);
+    expect(find.text('摆球'), findsOneWidget);
+    expect(find.text('重打'), findsOneWidget);
+    expect(find.text('击 球'), findsOneWidget);
+
+    await tester.tap(find.text('摆球'));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('完成摆球'), findsOneWidget);
+
+    await tester.tap(find.text('完成摆球'));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('摆球'), findsOneWidget);
   });
 
   testWidgets('点击击球后进入运动状态', (tester) async {

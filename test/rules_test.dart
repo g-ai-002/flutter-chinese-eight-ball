@@ -210,7 +210,37 @@ void main() {
   });
 
   group('黑八胜负', () {
-    test('清台后打进黑八获胜', () {
+    test('清台后打进指定袋口的黑八获胜', () {
+      final rules = MatchRules()..isBreak = false;
+      rules.groups[0] = PlayerGroup.solids;
+      rules.groups[1] = PlayerGroup.stripes;
+      rules.tableOpen = false;
+      final ruling = rules.apply(
+        outcome(pottedIds: [8], firstContact: 8),
+        onEight: true,
+        calledPocket: 0,
+      );
+      expect(ruling.gameOver, isTrue);
+      expect(ruling.winner, 0);
+      expect(rules.over, isTrue);
+    });
+
+    test('黑八落入非指定袋口判负', () {
+      final rules = MatchRules()..isBreak = false;
+      rules.groups[0] = PlayerGroup.solids;
+      rules.groups[1] = PlayerGroup.stripes;
+      rules.tableOpen = false;
+      final ruling = rules.apply(
+        outcome(pottedIds: [8], firstContact: 8),
+        onEight: true,
+        calledPocket: 2,
+      );
+      expect(ruling.gameOver, isTrue);
+      expect(ruling.winner, 1);
+      expect(rules.endReason, contains('非指定袋口'));
+    });
+
+    test('未指定袋口时黑八落袋判负', () {
       final rules = MatchRules()..isBreak = false;
       rules.groups[0] = PlayerGroup.solids;
       rules.groups[1] = PlayerGroup.stripes;
@@ -220,8 +250,8 @@ void main() {
         onEight: true,
       );
       expect(ruling.gameOver, isTrue);
-      expect(ruling.winner, 0);
-      expect(rules.over, isTrue);
+      expect(ruling.winner, 1);
+      expect(rules.endReason, contains('未指定袋口'));
     });
 
     test('提前打进黑八判负', () {
@@ -243,7 +273,11 @@ void main() {
       rules.groups[0] = PlayerGroup.solids;
       rules.groups[1] = PlayerGroup.stripes;
       rules.tableOpen = false;
-      final ruling = rules.apply(outcome(pottedIds: [8]), onEight: true);
+      final ruling = rules.apply(
+        outcome(pottedIds: [8]),
+        onEight: true,
+        calledPocket: 0,
+      );
       expect(ruling.gameOver, isTrue);
       expect(ruling.winner, 1);
       expect(rules.endReason, contains('犯规'));
@@ -257,6 +291,7 @@ void main() {
       final ruling = rules.apply(
         outcome(pottedIds: [0, 8], firstContact: 8),
         onEight: true,
+        calledPocket: 0,
       );
       expect(ruling.gameOver, isTrue);
       expect(ruling.winner, 1);

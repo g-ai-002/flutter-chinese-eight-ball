@@ -10,9 +10,10 @@ class CompactPlayers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final players = controller.isPractice ? [0] : [0, 1];
     return Row(
       children: [
-        for (final player in [0, 1]) ...[
+        for (final player in players) ...[
           if (player == 1) const SizedBox(width: 8),
           Expanded(
             child: _CompactPlayerCard(controller: controller, player: player),
@@ -35,7 +36,12 @@ class _CompactPlayerCard extends StatelessWidget {
     final colors = theme.colorScheme;
     final active = controller.currentPlayer == player;
     final group = controller.rules.groupOf(player);
-    final label = controller.rules.tableOpen ? '开放球台' : (group?.label ?? '待定');
+    final label = controller.isPractice
+        ? '自由练习'
+        : (controller.rules.tableOpen ? '开放球台' : (group?.label ?? '待定'));
+    final detail = controller.isPractice
+        ? '第 ${controller.shotCount} 杆'
+        : '$label · ${controller.remainingFor(player)} 颗';
     return AnimatedContainer(
       duration: const Duration(milliseconds: 160),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -70,7 +76,7 @@ class _CompactPlayerCard extends StatelessWidget {
             ),
           ),
           Text(
-            '$label · ${controller.remainingFor(player)} 颗',
+            detail,
             style: theme.textTheme.labelSmall?.copyWith(
               color: colors.onSurfaceVariant,
             ),

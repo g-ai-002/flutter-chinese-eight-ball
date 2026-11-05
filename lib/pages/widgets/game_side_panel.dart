@@ -32,7 +32,8 @@ class GameSidePanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final player in [0, 1]) ...[
+          for (final player
+              in (controller.isPractice ? const [0] : const [0, 1])) ...[
             PlayerBar(
               name: controller.playerName(player),
               subtitle: _targetLabel(player),
@@ -101,7 +102,7 @@ class GameSidePanel extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onRestart,
                   icon: const Icon(Icons.restart_alt, size: 18),
-                  label: const Text('重新开球'),
+                  label: Text(controller.isPractice ? '重置球桌' : '重新开球'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -145,6 +146,8 @@ class GameSidePanel extends StatelessWidget {
           Text(
             controller.phase == MatchPhase.gameOver
                 ? '对局结束'
+                : controller.isPractice
+                ? '自由练习'
                 : '${controller.playerName(controller.currentPlayer)}击球',
             style: theme.textTheme.titleSmall,
           ),
@@ -176,6 +179,7 @@ class GameSidePanel extends StatelessWidget {
   }
 
   String _targetLabel(int player) {
+    if (controller.isPractice) return '自由练习 · 无规则限制';
     final rules = controller.rules;
     if (rules.tableOpen) return '开放球台 · 首球定组';
     final group = rules.groupOf(player);
@@ -188,6 +192,12 @@ class GameSidePanel extends StatelessWidget {
 
   /// 该球手剩余的目标球号；清台后展示待打的黑八。
   List<int> _remainingIds(int player) {
+    if (controller.isPractice) {
+      return [
+        for (final ball in controller.balls)
+          if (ball.active && !ball.isCue) ball.id,
+      ]..sort();
+    }
     final group = controller.rules.groupOf(player);
     if (group == null) return const [];
     final ids = [

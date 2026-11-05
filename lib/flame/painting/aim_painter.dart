@@ -11,8 +11,43 @@ import '../../core/vec.dart';
 import '../table_layout.dart';
 import 'paint_utils.dart';
 
-/// 绘制瞄准辅助线、球杆与自由球摆放预览。
+/// 绘制瞄准辅助线、球杆、指袋标记与自由球摆放预览。
 class AimPainter {
+  /// 攻打黑八时在六个袋口画可选标记，点击袋口即可指定。
+  void paintPocketTargets(
+    Canvas canvas,
+    TableLayout layout,
+    MatchController controller,
+  ) {
+    if (!controller.needsPocketCall) return;
+    for (var index = 0; index < TableGeometry.pockets.length; index++) {
+      final selected = controller.calledPocket == index;
+      final center = layout.toCanvas(TableGeometry.pockets[index]);
+      final radius = math.max(10.5, layout.pocketRadius * 0.95);
+      final color = selected
+          ? const Color(0xFFFFC857)
+          : Colors.white.withValues(alpha: 0.72);
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()..color = Colors.black.withValues(alpha: 0.34),
+      );
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = selected ? 2.6 : 1.3
+          ..color = color,
+      );
+      canvas.drawCircle(
+        center,
+        radius * (selected ? 0.42 : 0.26),
+        Paint()..color = color,
+      );
+    }
+  }
+
   void paintGuide(
     Canvas canvas,
     TableLayout layout,
