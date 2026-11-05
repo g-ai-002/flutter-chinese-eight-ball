@@ -37,16 +37,6 @@ class TableGeometry {
     Vec2(width, height),
   ];
 
-  /// 袋口序号对应的中文名称。
-  static const List<String> pocketNames = [
-    '左上角袋',
-    '上中袋',
-    '右上角袋',
-    '左下角袋',
-    '下中袋',
-    '右下角袋',
-  ];
-
   /// 开球摆球：8 号球在三角形中心，后排两个底角一全一花。
   static List<BallState> rackBalls() {
     const layout = <List<int>>[

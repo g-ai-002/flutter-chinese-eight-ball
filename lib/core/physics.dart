@@ -55,13 +55,6 @@ class ShotOutcome {
     }
     return null;
   }
-
-  int? get firstPottedPocket {
-    for (final event in potted) {
-      if (event.ballId != 0) return event.pocketIndex;
-    }
-    return null;
-  }
 }
 
 /// 台球物理模拟：等质量弹性碰撞、库边反弹、滚动摩擦与落袋判定。
@@ -89,11 +82,6 @@ class ShotSimulation {
   bool struck = false;
 
   BallState get cueBall => balls.firstWhere((ball) => ball.isCue);
-
-  List<BallState> get activeBalls => [
-    for (final ball in balls)
-      if (ball.active) ball,
-  ];
 
   bool get settled {
     if (timedOut) return true;

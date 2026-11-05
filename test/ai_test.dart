@@ -48,6 +48,14 @@ void main() {
     expect(shot.power, inInclusiveRange(0.15, 1.0));
   });
 
+  test('开放球台时不会把黑八当作普通目标', () {
+    final balls = [ball(0, 1.27, 1.0), ball(1, 1.27, 0.45), ball(8, 1.9, 0.3)];
+    final ai = EightBallAi(random: math.Random(9));
+    final shot = ai.decide(balls: balls, group: null, onEight: false);
+    expect(shot.targetBallId, isNot(8));
+    expect(shot.angle.isFinite, isTrue);
+  });
+
   test('清台后 AI 以黑八为目标', () {
     final balls = [ball(0, 1.27, 1.0), ball(8, 1.27, 0.55)];
     final ai = EightBallAi(random: math.Random(11));

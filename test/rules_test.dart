@@ -59,6 +59,18 @@ void main() {
       expect(rules.current, 1);
       expect(rules.ballInHand, isTrue);
     });
+
+    test('开球黑八与母球同时落袋仍然重新摆球', () {
+      final rules = MatchRules();
+      final ruling = rules.apply(
+        outcome(pottedIds: [0, 8], cushionAfterContact: true),
+        onEight: false,
+      );
+      expect(ruling.rerack, isTrue);
+      expect(ruling.gameOver, isFalse);
+      expect(rules.over, isFalse);
+      expect(rules.current, 0);
+    });
   });
 
   group('球组归属', () {
@@ -101,6 +113,18 @@ void main() {
       expect(ruling.keepTurn, isFalse);
       expect(rules.current, 1);
     });
+
+    test('开放球台犯规时不进行球组归属', () {
+      final rules = MatchRules()..isBreak = false;
+      final ruling = rules.apply(
+        outcome(pottedIds: [0, 3], firstContact: 3),
+        onEight: false,
+      );
+      expect(ruling.foul, isTrue);
+      expect(rules.tableOpen, isTrue);
+      expect(rules.groups, [null, null]);
+      expect(rules.current, 1);
+    });
   });
 
   group('犯规', () {
@@ -124,6 +148,31 @@ void main() {
       final ruling = rules.apply(outcome(), onEight: false);
       expect(ruling.foul, isTrue);
       expect(ruling.foulReason, contains('碰库'));
+    });
+
+    test('碰撞后有球落袋则无需碰库', () {
+      final rules = MatchRules()..isBreak = false;
+      rules.groups[0] = PlayerGroup.solids;
+      rules.tableOpen = false;
+      final ruling = rules.apply(
+        outcome(pottedIds: [3], firstContact: 3),
+        onEight: false,
+      );
+      expect(ruling.foul, isFalse);
+      expect(ruling.keepTurn, isTrue);
+    });
+
+    test('母球落袋优先于其他犯规原因', () {
+      final rules = MatchRules()..isBreak = false;
+      rules.groups[0] = PlayerGroup.solids;
+      rules.tableOpen = false;
+      final ruling = rules.apply(
+        outcome(pottedIds: [0, 12], firstContact: 12),
+        onEight: false,
+      );
+      expect(ruling.foul, isTrue);
+      expect(ruling.foulReason, '母球落袋');
+      expect(rules.ballInHand, isTrue);
     });
 
     test('空杆判犯规', () {

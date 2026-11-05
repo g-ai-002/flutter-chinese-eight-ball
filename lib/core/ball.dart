@@ -12,9 +12,6 @@ class BallSpec {
 
   bool get isCue => kind == BallKind.cue;
   bool get isEight => kind == BallKind.eight;
-  bool get isObject => !isCue;
-  bool get isSolid => kind == BallKind.solid;
-  bool get isStripe => kind == BallKind.stripe;
 }
 
 const BallSpec kCueBall = BallSpec(0, BallKind.cue);
@@ -59,10 +56,4 @@ enum PlayerGroup {
 
   static PlayerGroup ofBall(BallKind kind) =>
       kind == BallKind.solid ? solids : stripes;
-}
-
-String ballLabel(int id) {
-  if (id == 0) return '母球';
-  if (id == 8) return '8 号球';
-  return '$id 号球';
 }

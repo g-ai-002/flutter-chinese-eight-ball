@@ -51,12 +51,12 @@ class MatchRules {
   /// 判定一杆的结果。[onEight] 表示击球前是否已经清完本方花色。
   ShotRuling apply(ShotOutcome outcome, {required bool onEight}) {
     shotNumber++;
-    final shootingPlayer = current;
+    final shooter = current;
     final wasBreak = isBreak;
-    final opponent = opponentOf(shootingPlayer);
+    isBreak = false;
 
+    // 开球时黑八落袋不计胜负，重新摆球后由同一球手再次开球。
     if (wasBreak && outcome.eightPotted) {
-      isBreak = false;
       ballInHand = false;
       return const ShotRuling(
         foul: false,
@@ -65,98 +65,66 @@ class MatchRules {
         rerack: true,
       );
     }
-    isBreak = false;
 
-    String? foulReason;
-    if (outcome.cuePotted) {
-      foulReason = '母球落袋';
-    } else if (outcome.firstContact == null) {
-      foulReason = '空杆，未碰到任何球';
-    } else {
-      final firstKind = kindOfBall(outcome.firstContact!);
-      final group = groups[shootingPlayer];
-      if (tableOpen) {
-        if (firstKind == BallKind.eight) {
-          foulReason = '开放球台不能先碰黑八';
-        }
-      } else if (group != null && !onEight) {
-        if (firstKind != group.kind) {
-          foulReason = firstKind == BallKind.eight ? '先碰到黑八' : '先碰到对方的球';
-        }
-      } else if (group != null && onEight) {
-        if (firstKind != BallKind.eight) {
-          foulReason = '未先碰黑八';
-        }
-      }
-    }
-
-    if (foulReason == null &&
-        outcome.anyPotted == false &&
-        outcome.firstContact != null &&
-        !outcome.cushionAfterContact) {
-      foulReason = '碰撞后无球碰库';
-    }
-
-    final foul = foulReason != null;
-
-    // 黑八落袋的胜负先于普通犯规处理：清台后合法打进黑八即胜，
-    // 提前落袋、母球同时落袋或开球外的犯规都判负。
+    final foulReason = _foulReason(outcome, shooter, onEight);
     if (outcome.eightPotted) {
-      over = true;
-      if (onEight && !foul && !outcome.cuePotted) {
-        winner = shootingPlayer;
-        endReason = '清台后打进黑八';
-      } else {
-        winner = opponent;
-        endReason = outcome.cuePotted
-            ? '黑八与母球同时落袋'
-            : (onEight ? '打进黑八时犯规' : '黑八提前落袋');
-      }
-      ballInHand = false;
-      return ShotRuling(
-        foul: foul,
-        keepTurn: false,
-        message: endReason!,
-        foulReason: foulReason,
-        gameOver: true,
-        winner: winner,
-        endReason: endReason,
-      );
-    }
-
-    if (foul) {
-      current = opponent;
-      ballInHand = true;
-      return ShotRuling(
-        foul: true,
-        keepTurn: false,
-        message: '犯规：$foulReason · 对手自由球',
+      return _settleEightBall(
+        outcome,
+        shooter,
+        onEight: onEight,
         foulReason: foulReason,
       );
     }
+    if (foulReason != null) return _settleFoul(foulReason);
+    return _settleLegalShot(outcome, shooter);
+  }
 
-    var assigned = false;
-    if (tableOpen) {
-      final firstObject = outcome.firstPottedObject;
-      if (firstObject != null && firstObject != 8) {
-        final group = PlayerGroup.ofBall(kindOfBall(firstObject));
-        groups[shootingPlayer] = group;
-        groups[opponent] = group == PlayerGroup.solids
-            ? PlayerGroup.stripes
-            : PlayerGroup.solids;
-        tableOpen = false;
-        assigned = true;
-      }
+  /// 黑八落袋即终局：清台后合法打进获胜，其余情况判负。
+  ShotRuling _settleEightBall(
+    ShotOutcome outcome,
+    int shooter, {
+    required bool onEight,
+    required String? foulReason,
+  }) {
+    final foul = foulReason != null;
+    over = true;
+    if (onEight && !foul && !outcome.cuePotted) {
+      winner = shooter;
+      endReason = '清台后打进黑八';
+    } else {
+      winner = opponentOf(shooter);
+      endReason = outcome.cuePotted
+          ? '黑八与母球同时落袋'
+          : (onEight ? '打进黑八时犯规' : '黑八提前落袋');
     }
+    ballInHand = false;
+    return ShotRuling(
+      foul: foul,
+      keepTurn: false,
+      message: endReason!,
+      foulReason: foulReason,
+      gameOver: true,
+      winner: winner,
+      endReason: endReason,
+    );
+  }
 
-    final ownGroup = groups[shootingPlayer];
-    final pottedOwn = outcome.pottedIds.any((id) {
-      if (id == 0 || id == 8) return false;
-      if (ownGroup == null) return true;
-      return kindOfBall(id) == ownGroup.kind;
-    });
+  ShotRuling _settleFoul(String reason) {
+    current = opponentOf(current);
+    ballInHand = true;
+    return ShotRuling(
+      foul: true,
+      keepTurn: false,
+      message: '犯规：$reason · 对手自由球',
+      foulReason: reason,
+    );
+  }
 
-    if (pottedOwn) {
+  ShotRuling _settleLegalShot(ShotOutcome outcome, int shooter) {
+    final assigned = _assignGroups(shooter, outcome);
+    final ownGroup = groups[shooter];
+
+    if (_pottedOwnBall(outcome, ownGroup)) {
       final groupText = assigned ? ' · 本局目标：${ownGroup!.label}' : '';
       return ShotRuling(
         foul: false,
@@ -165,9 +133,64 @@ class MatchRules {
       );
     }
 
-    current = opponent;
+    current = opponentOf(shooter);
     ballInHand = false;
     return const ShotRuling(foul: false, keepTurn: false, message: '未进球，交换球权');
+  }
+
+  /// 开放球台首颗合法落袋的目标球决定球组，返回是否完成定组。
+  bool _assignGroups(int shooter, ShotOutcome outcome) {
+    if (!tableOpen) return false;
+    final firstObject = outcome.firstPottedObject;
+    if (firstObject == null || firstObject == 8) return false;
+
+    final group = PlayerGroup.ofBall(kindOfBall(firstObject));
+    groups[shooter] = group;
+    groups[opponentOf(shooter)] = group == PlayerGroup.solids
+        ? PlayerGroup.stripes
+        : PlayerGroup.solids;
+    tableOpen = false;
+    return true;
+  }
+
+  bool _pottedOwnBall(ShotOutcome outcome, PlayerGroup? group) {
+    return outcome.pottedIds.any((id) {
+      if (id == 0 || id == 8) return false;
+      if (group == null) return true;
+      return kindOfBall(id) == group.kind;
+    });
+  }
+
+  /// 按优先级归并犯规：母球落袋 > 空杆 > 先碰错球 > 碰撞后无球碰库。
+  String? _foulReason(ShotOutcome outcome, int shooter, bool onEight) {
+    final contactReason = _contactFoulReason(outcome, shooter, onEight);
+    if (contactReason != null) return contactReason;
+    if (!outcome.anyPotted &&
+        outcome.firstContact != null &&
+        !outcome.cushionAfterContact) {
+      return '碰撞后无球碰库';
+    }
+    return null;
+  }
+
+  String? _contactFoulReason(ShotOutcome outcome, int shooter, bool onEight) {
+    if (outcome.cuePotted) return '母球落袋';
+
+    final firstContact = outcome.firstContact;
+    if (firstContact == null) return '空杆，未碰到任何球';
+
+    final firstKind = kindOfBall(firstContact);
+    if (tableOpen) {
+      return firstKind == BallKind.eight ? '开放球台不能先碰黑八' : null;
+    }
+
+    final group = groups[shooter];
+    if (group == null) return null;
+    if (onEight) {
+      return firstKind == BallKind.eight ? null : '未先碰黑八';
+    }
+    if (firstKind == group.kind) return null;
+    return firstKind == BallKind.eight ? '先碰到黑八' : '先碰到对方的球';
   }
 
   /// 依据球号推断花色，无需依赖台面状态。
