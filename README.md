@@ -20,15 +20,20 @@
 
 ## 下载
 
-v0.1.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.1.0)
+v0.1.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.1.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-chinese-eight-ball-0.1.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.1.0-windows-x86_64.zip` |
-| Web | `flutter-chinese-eight-ball-0.1.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-chinese-eight-ball-0.1.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.1.1-windows-x86_64.zip` |
+| Web | `flutter-chinese-eight-ball-0.1.1-web.zip`（解压后起静态服务器） |
 
-Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.1.0/` 与 `debug/`），可直接部署为静态站点。
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.1.1/` 与 `debug/`），可直接部署为静态站点。
+
+| 版本 | 说明 |
+| --- | --- |
+| 0.1.1 | 重构球台绘制、规则裁定、AI 候选与对局页组件，修复 AI 重复出杆并补充边界用例 |
+| 0.1.0 | 首个可玩版本：物理、规则、三档 AI、双人同屏与三端构建发布 |
 
 ## 开发
 
@@ -53,7 +58,7 @@ flutter test
 ```
 lib/
 ├── core/            # 纯 Dart 游戏核心：向量、球、台面、物理、规则、AI、对局控制
-├── flame/           # Flame 球台渲染与游戏循环
+├── flame/           # Flame 游戏循环、球台组件与 painter（台面 / 球体 / 瞄准 / 落袋）
 ├── pages/           # 首页、对局页、设置页、规则页与共享组件
 ├── providers/       # 用户偏好
 ├── services/        # 日志、存储、音效、音乐与运行时音频合成
