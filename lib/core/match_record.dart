@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'ball.dart';
@@ -142,7 +141,9 @@ class MatchRecord {
 
   static MatchRecord? fromJson(Object? raw) {
     if (raw is! Map) return null;
-    final createdAt = DateTime.tryParse(raw['t'] is String ? raw['t'] as String : '');
+    final createdAt = DateTime.tryParse(
+      raw['t'] is String ? raw['t'] as String : '',
+    );
     if (createdAt == null) return null;
     final shots = <ReplayShot>[];
     final rawShots = raw['s'];
@@ -170,146 +171,6 @@ class MatchRecord {
       shots: shots,
     );
   }
-}
-
-/// 对局记录的本地编码：只保留最近若干场，坏数据整条丢弃。
-class MatchHistory {
-  MatchHistory._();
-
-  static const int maxRecords = 10;
-
-  static List<MatchRecord> decode(String? raw) {
-    if (raw == null || raw.isEmpty) return const [];
-    Object? parsed;
-    try {
-      parsed = jsonDecode(raw);
-    } catch (_) {
-      return const [];
-    }
-    if (parsed is! List) return const [];
-    final records = <MatchRecord>[];
-    for (final item in parsed) {
-      final record = MatchRecord.fromJson(item);
-      if (record != null) records.add(record);
-    }
-    records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return records.take(maxRecords).toList(growable: false);
-  }
-
-  static String encode(List<MatchRecord> records) {
-    final sorted = [...records]
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return jsonEncode([
-      for (final record in sorted.take(maxRecords)) record.toJson(),
-    ]);
-  }
-}
-
-/// 对局录制器：随对局收集逐杆记录，终局时生成 [MatchRecord]。
-class MatchRecorder {
-  MatchRecorder({
-    required this.mode,
-    required this.modeLabel,
-    required this.difficultyLabel,
-    required this.humanSide,
-  });
-
-  /// 单场最多保留的杆数，避免极端长局拖慢存储与回放。
-  static const int maxShots = 240;
-
-  final String mode;
-  final String modeLabel;
-  final String difficultyLabel;
-  final int humanSide;
-
-  final List<ReplayShot> _shots = [];
-  _PendingShot? _pending;
-
-  int get shotCount => _shots.length;
-
-  void beginShot({
-    required int player,
-    required Iterable<BallState> balls,
-    required double angle,
-    required double power,
-    int? calledPocket,
-  }) {
-    if (_shots.length >= maxShots) {
-      _pending = null;
-      return;
-    }
-    _pending = _PendingShot(
-      player: player,
-      balls: BallState.cloneAll(balls),
-      angle: angle,
-      power: power,
-      calledPocket: calledPocket,
-    );
-  }
-
-  void endShot({required String result, required Iterable<int> potted}) {
-    final pending = _pending;
-    _pending = null;
-    if (pending == null) return;
-    _shots.add(
-      ReplayShot(
-        player: pending.player,
-        balls: pending.balls,
-        angle: pending.angle,
-        power: pending.power,
-        calledPocket: pending.calledPocket,
-        result: result,
-        potted: potted.toList(growable: false),
-      ),
-    );
-  }
-
-  MatchRecord? finish({
-    required int winner,
-    required String winnerName,
-    required String title,
-    required bool playerWin,
-    required String reason,
-    DateTime? now,
-  }) {
-    if (_shots.isEmpty) return null;
-    final createdAt = now ?? DateTime.now();
-    return MatchRecord(
-      id: '${createdAt.millisecondsSinceEpoch}',
-      createdAt: createdAt,
-      mode: mode,
-      modeLabel: modeLabel,
-      difficultyLabel: difficultyLabel,
-      humanSide: humanSide,
-      winner: winner,
-      winnerName: winnerName,
-      title: title,
-      playerWin: playerWin,
-      endReason: reason,
-      shots: List.unmodifiable(_shots),
-    );
-  }
-
-  void clear() {
-    _shots.clear();
-    _pending = null;
-  }
-}
-
-class _PendingShot {
-  _PendingShot({
-    required this.player,
-    required this.balls,
-    required this.angle,
-    required this.power,
-    required this.calledPocket,
-  });
-
-  final int player;
-  final List<BallState> balls;
-  final double angle;
-  final double power;
-  final int? calledPocket;
 }
 
 double _round(double value, int digits) {

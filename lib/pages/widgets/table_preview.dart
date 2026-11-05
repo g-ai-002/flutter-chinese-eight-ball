@@ -18,7 +18,7 @@ class TablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1.88,
+      aspectRatio: TableLayout.aspectRatio,
       child: CustomPaint(
         painter: _TablePreviewPainter(skin),
         size: Size.infinite,

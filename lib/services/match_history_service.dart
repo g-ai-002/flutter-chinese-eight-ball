@@ -1,3 +1,4 @@
+import '../core/match_history.dart';
 import '../core/match_record.dart';
 import 'log_service.dart';
 import 'storage_service.dart';
@@ -15,22 +16,19 @@ class MatchHistoryService {
 
   Future<List<MatchRecord>> add(MatchRecord record) async {
     final records = await load();
-    final next = [
+    final next = await _save([
       record,
       ...records.where((item) => item.id != record.id),
-    ];
-    await _save(next);
+    ]);
     LogService.info(
       '保存对局记录: ${record.title} · ${record.subtitle} · ${record.endReason}',
     );
-    return next.take(MatchHistory.maxRecords).toList(growable: false);
+    return next;
   }
 
   Future<List<MatchRecord>> remove(String id) async {
     final records = await load();
-    final next = records.where((item) => item.id != id).toList();
-    await _save(next);
-    return next;
+    return _save(records.where((item) => item.id != id));
   }
 
   Future<void> clear() async {
@@ -38,8 +36,11 @@ class MatchHistoryService {
     await storage.setMatchHistoryJson('');
   }
 
-  Future<void> _save(List<MatchRecord> records) async {
+  /// 统一排序、裁剪并写入，返回实际保存的记录。
+  Future<List<MatchRecord>> _save(Iterable<MatchRecord> records) async {
+    final next = MatchHistory.normalize(records);
     final storage = await StorageService.instance;
-    await storage.setMatchHistoryJson(MatchHistory.encode(records));
+    await storage.setMatchHistoryJson(MatchHistory.encode(next));
+    return next;
   }
 }

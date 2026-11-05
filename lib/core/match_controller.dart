@@ -7,6 +7,7 @@ import '../services/log_service.dart';
 import 'ai.dart';
 import 'ball.dart';
 import 'match_record.dart';
+import 'match_recorder.dart';
 import 'physics.dart';
 import 'practice_session.dart';
 import 'rules.dart';

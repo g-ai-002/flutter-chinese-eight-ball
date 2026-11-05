@@ -23,6 +23,13 @@ class TableLayout {
       (TableGeometry.width + railWidth * 2) /
       (TableGeometry.height + railWidth * 2);
 
+  /// 在可用空间内按 [aspectRatio] 计算球台尺寸，空间过小时保留最小宽度。
+  static Size fit(Size available, {double minWidth = 320}) {
+    var width = math.min(available.width, available.height * aspectRatio);
+    if (width <= 0) width = math.min(available.width, minWidth);
+    return Size(width, width / aspectRatio);
+  }
+
   final Size size;
   late final double scale;
   late final Offset origin;

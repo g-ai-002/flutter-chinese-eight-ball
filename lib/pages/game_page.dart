@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -121,7 +119,9 @@ class _GamePageState extends State<GamePage> {
                   ),
                 );
                 // 回放结束后回到终局球台，重新给出「再来一局」入口。
-                if (!mounted || _controller.phase != MatchPhase.gameOver) return;
+                if (!mounted || _controller.phase != MatchPhase.gameOver) {
+                  return;
+                }
                 _dialogOpen = true;
                 await _showGameOver();
               },
@@ -290,14 +290,10 @@ class _GamePageState extends State<GamePage> {
   };
 
   Widget _buildTable(EightBallGame game, double maxWidth, double maxHeight) {
-    const aspect = TableLayout.aspectRatio;
-    var width = math.min(maxWidth, maxHeight * aspect);
-    if (width <= 0) width = math.min(maxWidth, 320);
-    final height = width / aspect;
-    final size = Size(width, height);
+    final size = TableLayout.fit(Size(maxWidth, maxHeight));
     return SizedBox(
-      width: width,
-      height: height,
+      width: size.width,
+      height: size.height,
       child: Stack(
         fit: StackFit.expand,
         children: [

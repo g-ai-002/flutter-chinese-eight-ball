@@ -1,6 +1,8 @@
 import 'package:chinese_eight_ball/core/ball.dart';
 import 'package:chinese_eight_ball/core/match_controller.dart';
+import 'package:chinese_eight_ball/core/match_history.dart';
 import 'package:chinese_eight_ball/core/match_record.dart';
+import 'package:chinese_eight_ball/core/match_recorder.dart';
 import 'package:chinese_eight_ball/core/replay_player.dart';
 import 'package:chinese_eight_ball/core/table_geometry.dart';
 import 'package:chinese_eight_ball/core/vec.dart';
@@ -47,7 +49,7 @@ MatchController finishWinningShot() {
   return controller;
 }
 
-MatchRecord sampleRecord({int index = 0}) {
+MatchRecord sampleRecord({int index = 0, int shotCount = 1}) {
   final balls = TableGeometry.rackBalls();
   final cue = balls.firstWhere((ball) => ball.isCue);
   return MatchRecord(
@@ -63,15 +65,16 @@ MatchRecord sampleRecord({int index = 0}) {
     playerWin: true,
     endReason: '清台后打进黑八',
     shots: [
-      ReplayShot(
-        player: 0,
-        balls: balls,
-        angle: angleOf(cue.position, TableGeometry.footSpot),
-        power: 0.8,
-        calledPocket: null,
-        result: '开球',
-        potted: const [],
-      ),
+      for (var i = 0; i < shotCount; i++)
+        ReplayShot(
+          player: 0,
+          balls: balls,
+          angle: angleOf(cue.position, TableGeometry.footSpot),
+          power: 0.8,
+          calledPocket: null,
+          result: '开球',
+          potted: const [],
+        ),
     ],
   );
 }
@@ -121,6 +124,32 @@ void main() {
       expect(match.finishedRecord, isNotNull);
       match.restart();
       expect(match.finishedRecord, isNull);
+    });
+
+    test('单场录制超过上限后不再累积杆次', () {
+      final recorder = MatchRecorder(
+        mode: 'twoPlayers',
+        modeLabel: '双人对战',
+        difficultyLabel: '进阶',
+        humanSide: 0,
+      );
+      final balls = TableGeometry.rackBalls();
+      for (var i = 0; i < MatchRecorder.maxShots + 3; i++) {
+        recorder.beginShot(player: 0, balls: balls, angle: 0, power: 0.5);
+        recorder.endShot(result: '第 $i 杆', potted: const []);
+      }
+
+      expect(recorder.shotCount, MatchRecorder.maxShots);
+      final record = recorder.finish(
+        winner: 0,
+        winnerName: '玩家一',
+        title: '玩家一获胜',
+        playerWin: true,
+        reason: '测试',
+      );
+      expect(record, isNotNull);
+      expect(record!.shotCount, MatchRecorder.maxShots);
+      expect(record.shots.last.result, '第 ${MatchRecorder.maxShots - 1} 杆');
     });
 
     test('记录 JSON 往返保留球局、结果与参数', () {
@@ -202,6 +231,67 @@ void main() {
       expect(player.atEnd, isFalse);
       expect(player.displayIndex, 1);
       expect(player.balls.where((ball) => ball.active), hasLength(16));
+    });
+
+    test('暂停后继续播放接着当前杆推进，不重演', () {
+      final record = sampleRecord();
+      final player = ReplayPlayer(record);
+      player.play();
+      for (var i = 0; i < 3; i++) {
+        player.tick(1 / 60);
+      }
+      final moving = player.balls.firstWhere((ball) => ball.isCue).position;
+
+      player.pause();
+      expect(player.isPlaying, isFalse);
+      player.tick(1 / 60);
+      expect(player.balls.firstWhere((ball) => ball.isCue).position, moving);
+
+      player.play();
+      player.tick(1 / 60);
+      final resumed = player.balls.firstWhere((ball) => ball.isCue).position;
+      expect(resumed, isNot(moving));
+      expect(
+        resumed.distanceTo(
+          record.shots.first.balls.firstWhere((b) => b.isCue).position,
+        ),
+        greaterThan(0.01),
+      );
+    });
+
+    test('seek 会取消播放在途状态并复原球局', () {
+      final record = sampleRecord();
+      final initial = record.shots.first.balls
+          .firstWhere((b) => b.isCue)
+          .position;
+      final player = ReplayPlayer(record)..play();
+      for (var i = 0; i < 3; i++) {
+        player.tick(1 / 60);
+      }
+
+      player.seek(0);
+      expect(player.isPlaying, isFalse);
+      expect(player.balls.firstWhere((ball) => ball.isCue).position, initial);
+
+      player.tick(1 / 60);
+      expect(player.balls.firstWhere((ball) => ball.isCue).position, initial);
+    });
+
+    test('终局后重新播放从第一杆开始', () {
+      final player = ReplayPlayer(sampleRecord());
+      player.play();
+      var ticks = 0;
+      while (!player.atEnd && ticks < 900) {
+        player.tick(1 / 60);
+        ticks++;
+      }
+      expect(player.atEnd, isTrue);
+      expect(player.isPlaying, isFalse);
+
+      player.play();
+      expect(player.index, 0);
+      expect(player.displayIndex, 1);
+      expect(player.isPlaying, isTrue);
     });
 
     test('空记录不崩溃且禁止播放', () {

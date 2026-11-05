@@ -1,9 +1,26 @@
+import 'dart:ui';
+
 import 'package:chinese_eight_ball/core/ball.dart';
 import 'package:chinese_eight_ball/core/table_geometry.dart';
 import 'package:chinese_eight_ball/core/vec.dart';
+import 'package:chinese_eight_ball/flame/table_layout.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('球台适配', () {
+    test('受限于高度时按球台比例缩放', () {
+      final size = TableLayout.fit(const Size(1000, 300));
+      expect(size.height, closeTo(300, 1e-6));
+      expect(size.width / size.height, closeTo(TableLayout.aspectRatio, 1e-6));
+    });
+
+    test('受限于宽度时按球台比例缩放', () {
+      final size = TableLayout.fit(const Size(400, 600));
+      expect(size.width, closeTo(400, 1e-6));
+      expect(size.width / size.height, closeTo(TableLayout.aspectRatio, 1e-6));
+    });
+  });
+
   group('摆球', () {
     test('16 颗球齐全且 8 号在三角中心', () {
       final balls = TableGeometry.rackBalls();

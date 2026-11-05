@@ -7,10 +7,8 @@ import '../core/vec.dart';
 import '../providers/settings_provider.dart';
 import '../services/sound_service.dart';
 import 'painting/aim_painter.dart';
-import 'painting/ball_painter.dart';
-import 'painting/pot_painter.dart';
-import 'painting/table_painter.dart';
 import 'table_layout.dart';
+import 'table_scene.dart';
 
 /// 球台渲染与击球特效：协调台面、球体、瞄准线、球杆与落袋动画。
 ///
@@ -29,14 +27,9 @@ class TableComponent extends PositionComponent {
   /// 摆球时手指所在位置，用于绘制半透明母球预览。
   final ValueNotifier<Vec2?>? placementPreview;
 
-  final TablePainter _tablePainter = TablePainter();
-  final BallPainter _ballPainter = BallPainter();
+  final TableScene _scene = TableScene();
   final AimPainter _aimPainter = AimPainter();
-  final PotPainter _potPainter = PotPainter();
-  final List<PotAnimation> _potAnimations = [];
 
-  TableLayout? _layout;
-  Size _layoutSize = Size.zero;
   MatchPhase _lastPhase = MatchPhase.aiming;
   double _lastImpactAt = -1;
   double _time = 0;
@@ -47,10 +40,7 @@ class TableComponent extends PositionComponent {
     _time += dt;
     _handlePhaseSound();
     _drainEffects();
-    for (final animation in _potAnimations) {
-      animation.progress += dt / 0.36;
-    }
-    _potAnimations.removeWhere((animation) => animation.progress >= 1);
+    _scene.update(dt);
   }
 
   void _handlePhaseSound() {
@@ -80,15 +70,10 @@ class TableComponent extends PositionComponent {
           SoundService.play(SoundFeedback.impact, volume: volume);
         case BallPocketed():
           SoundService.play(SoundFeedback.pocket, volume: 0.85);
-          final ball = controller.simulation.balls.firstWhere(
-            (item) => item.id == event.ballId,
-          );
-          _potAnimations.add(
-            PotAnimation(
-              from: event.position,
-              pocketIndex: event.pocketIndex,
-              ballId: event.ballId,
-              kind: ball.kind,
+          _scene.addPot(
+            event,
+            controller.simulation.balls.firstWhere(
+              (item) => item.id == event.ballId,
             ),
           );
       }
@@ -99,26 +84,13 @@ class TableComponent extends PositionComponent {
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    final layout = _layoutFor(Size(size.x, size.y));
-    _tablePainter.paint(canvas, layout, settings.tableSkin);
+    final layout = _scene.layoutFor(Size(size.x, size.y));
+    _scene.paintTable(canvas, layout, settings.tableSkin);
     _aimPainter.paintPocketTargets(canvas, layout, controller);
-    _ballPainter.paintShadows(canvas, layout, controller.balls);
-    for (final ball in controller.balls) {
-      if (!ball.active) continue;
-      _ballPainter.paintBall(canvas, layout, ball);
-    }
+    _scene.paintBalls(canvas, layout, controller.balls);
     _paintAiming(canvas, layout);
     _paintPlacementPreview(canvas, layout);
-    for (final animation in _potAnimations) {
-      _potPainter.paint(canvas, layout, animation);
-    }
-  }
-
-  TableLayout _layoutFor(Size size) {
-    final cached = _layout;
-    if (cached != null && _layoutSize == size) return cached;
-    _layoutSize = size;
-    return _layout = TableLayout(size);
+    _scene.paintPots(canvas, layout);
   }
 
   void _paintAiming(Canvas canvas, TableLayout layout) {
