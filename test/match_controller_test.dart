@@ -1,5 +1,6 @@
 import 'package:chinese_eight_ball/core/ai.dart';
 import 'package:chinese_eight_ball/core/match_controller.dart';
+import 'package:chinese_eight_ball/core/physics.dart';
 import 'package:chinese_eight_ball/core/table_geometry.dart';
 import 'package:chinese_eight_ball/core/vec.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -127,5 +128,43 @@ void main() {
     runToRest(controller);
     expect(controller.phase, isNot(MatchPhase.shooting));
     expect(controller.rules.shotNumber, 1);
+  });
+
+  test('球在运动中时 AI 不会重复出杆', () async {
+    final controller = MatchController(
+      mode: GameMode.vsAi,
+      difficulty: AiDifficulty.easy,
+      humanSide: 1,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+
+    await controller.playAiTurn();
+    expect(controller.phase, MatchPhase.shooting);
+
+    await controller.playAiTurn();
+    expect(controller.phase, MatchPhase.shooting);
+
+    runToRest(controller);
+    expect(controller.rules.shotNumber, 1);
+  });
+
+  test('重新开球会清空未消费的击球特效', () {
+    final controller = MatchController(
+      mode: GameMode.twoPlayers,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+
+    controller.pendingEffects.add(
+      const BallPocketed(
+        ballId: 1,
+        pocketIndex: 0,
+        position: TableGeometry.center,
+      ),
+    );
+    controller.restart();
+
+    expect(controller.pendingEffects, isEmpty);
   });
 }

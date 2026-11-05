@@ -81,9 +81,12 @@ class MatchController extends ChangeNotifier {
   bool get ballInHand => _rules.ballInHand;
   bool get isAiTurn => _isAiTurn;
   bool get isHumanTurn => !_isAiTurn;
-  bool get isPlacing => _phase == MatchPhase.placingCue;
 
   bool get _isAiTurn => mode == GameMode.vsAi && _rules.current != humanSide;
+
+  /// AI 只允许在瞄准或摆球阶段行动，避免在球运动时被旧定时器打断。
+  bool get _canAiAct =>
+      _phase == MatchPhase.aiming || _phase == MatchPhase.placingCue;
 
   String playerName(int player) {
     if (mode == GameMode.twoPlayers) return '玩家${player == 0 ? '一' : '二'}';
@@ -233,6 +236,7 @@ class MatchController extends ChangeNotifier {
   void _startRack() {
     _simulation = ShotSimulation(balls: TableGeometry.rackBalls())
       ..placeCue(TableGeometry.headSpot);
+    pendingEffects.clear();
     _effectCursor = 0;
     _rules.isBreak = true;
     _rules.ballInHand = false;
@@ -262,8 +266,9 @@ class MatchController extends ChangeNotifier {
 
   void _scheduleAiTurn() {
     if (!autoPlayAi) return;
+    final generation = _generation;
     Future<void>.delayed(aiThinkDelay, () {
-      if (_disposed) return;
+      if (_disposed || generation != _generation) return;
       unawaited(playAiTurn());
     });
   }
@@ -271,7 +276,7 @@ class MatchController extends ChangeNotifier {
   /// 让 AI 完成一次行动；测试可直接 await 此方法。
   Future<void> playAiTurn() async {
     if (_disposed || _aiRunning) return;
-    if (!_isAiTurn || _phase == MatchPhase.gameOver) return;
+    if (!_isAiTurn || !_canAiAct) return;
     final generation = _generation;
     _aiRunning = true;
     _phase = MatchPhase.aiThinking;
@@ -279,6 +284,12 @@ class MatchController extends ChangeNotifier {
 
     if (!cueBall.active) {
       _autoPlaceCueForAi();
+      if (!cueBall.active) {
+        _aiRunning = false;
+        _phase = MatchPhase.placingCue;
+        notifyListeners();
+        return;
+      }
       notifyListeners();
     }
 
@@ -335,7 +346,6 @@ class MatchController extends ChangeNotifier {
     _startRack();
     _history.clear();
     _pushLog('开球：${playerName(0)}先手');
-    pendingEffects.clear();
     power = defaultPower;
     notifyListeners();
     if (_isAiTurn) _scheduleAiTurn();
