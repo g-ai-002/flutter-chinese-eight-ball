@@ -79,7 +79,7 @@ void main() {
     expect(find.text('自由练习'), findsOneWidget);
     expect(find.text('最近对局'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.3.0'), findsOneWidget);
+    expect(find.textContaining('v0.3.1'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
