@@ -23,22 +23,28 @@
 
 ## 下载
 
-v0.3.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.3.0)
+v0.3.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.3.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-chinese-eight-ball-0.3.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.3.0-windows-x86_64.zip` |
-| Web | `flutter-chinese-eight-ball-0.3.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-chinese-eight-ball-0.3.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.3.1-windows-x86_64.zip` |
+| Web | `flutter-chinese-eight-ball-0.3.1-web.zip`（解压后起静态服务器） |
 
-Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.3.0/` 与 `debug/`），可直接部署为静态站点。
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.3.1/` 与 `debug/`），可直接部署为静态站点。
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.3.1 | 重构回放状态机、记录编解码与回放页组件，实时对局与回放共用球台渲染层 |
 | 0.3.0 | 新增最近对局记录与逐杆回放，播放 / 暂停、跳杆与进度拖拽，记录只存本机 |
 | 0.2.1 | 重构练习状态、命中判定与对局页组件，修复宽屏指袋前可点击击球的问题 |
 | 0.2.0 | 新增黑八指袋与自由练习模式，支持任意摆球与重打上一杆 |
 | 0.1.1 | 重构球台绘制、规则裁定、AI 候选与对局页组件，修复 AI 重复出杆并补充边界用例 |
+
+更早版本：
+
+| 版本 | 说明 |
+| --- | --- |
 | 0.1.0 | 首个可玩版本：物理、规则、三档 AI、双人同屏与三端构建发布 |
 
 ## 开发
@@ -65,8 +71,8 @@ flutter test
 
 ```
 lib/
-├── core/            # 纯 Dart 游戏核心：向量、球、台面、物理、规则、AI、对局控制、对局记录与回放
-├── flame/           # Flame 游戏循环、球台组件与 painter（台面 / 球体 / 瞄准 / 落袋 / 回放）
+├── core/            # 纯 Dart 游戏核心：向量、球、台面、物理、规则、AI、对局控制、记录编解码与回放
+├── flame/           # Flame 游戏循环、球台共享渲染层与组件（台面 / 球体 / 瞄准 / 落袋 / 回放）
 ├── pages/           # 首页、对局页、最近对局、回放、设置页、规则页与共享组件
 ├── providers/       # 用户偏好
 ├── services/        # 日志、存储、对局记录、音效、音乐与运行时音频合成
