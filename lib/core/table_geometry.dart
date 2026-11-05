@@ -47,6 +47,26 @@ class TableGeometry {
     '右下角袋',
   ];
 
+  /// 离指定坐标最近的袋口编号。
+  static int nearestPocket(Vec2 point) {
+    var best = 0;
+    var nearest = double.infinity;
+    for (var index = 0; index < pockets.length; index++) {
+      final distance = point.distanceSquaredTo(pockets[index]);
+      if (distance < nearest) {
+        nearest = distance;
+        best = index;
+      }
+    }
+    return best;
+  }
+
+  /// 指定坐标落在哪个袋口的点击范围内；不在任何袋口附近返回 null。
+  static int? pocketAt(Vec2 point, {double tolerance = pocketRadius}) {
+    final index = nearestPocket(point);
+    return point.distanceTo(pockets[index]) <= tolerance ? index : null;
+  }
+
   /// 开球摆球：8 号球在三角形中心，后排两个底角一全一花。
   static List<BallState> rackBalls() {
     const layout = <List<int>>[

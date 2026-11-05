@@ -6,16 +6,18 @@ import 'package:provider/provider.dart';
 
 import '../core/ai.dart';
 import '../core/match_controller.dart';
-import '../core/table_geometry.dart';
 import '../core/vec.dart';
 import '../flame/eight_ball_game.dart';
 import '../flame/table_layout.dart';
+import '../flame/table_pointer.dart';
 import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
+import 'game_hint.dart';
 import 'help_page.dart';
 import 'widgets/compact_players.dart';
+import 'widgets/game_over_dialog.dart';
 import 'widgets/game_side_panel.dart';
 import 'widgets/power_control.dart';
+import 'widgets/practice_toolbar.dart';
 import 'widgets/status_strip.dart';
 
 /// 对局页：球台渲染、瞄准手势、力度控制与回合信息。
@@ -92,47 +94,20 @@ class _GamePageState extends State<GamePage> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        icon: Icon(
-          playerWin ? Icons.emoji_events_outlined : Icons.sports_bar_outlined,
-          color: playerWin ? appGold : Theme.of(context).colorScheme.primary,
-          size: 30,
-        ),
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              rules.endReason ?? '本局结束',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '共 ${_controller.shotCount} 杆',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('返回首页'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              _controller.restart();
-              _dialogOpen = false;
-            },
-            child: const Text('再来一局'),
-          ),
-        ],
+      builder: (dialogContext) => GameOverDialog(
+        title: title,
+        playerWin: playerWin,
+        reason: rules.endReason ?? '本局结束',
+        shots: _controller.shotCount,
+        onHome: () {
+          Navigator.of(dialogContext).pop();
+          Navigator.of(context).pop();
+        },
+        onRestart: () {
+          Navigator.of(dialogContext).pop();
+          _controller.restart();
+          _dialogOpen = false;
+        },
       ),
     );
     _dialogOpen = false;
@@ -236,7 +211,7 @@ class _GamePageState extends State<GamePage> {
                           controller: _controller,
                           mode: widget.mode,
                           onRestart: _confirmRestart,
-                          hint: _hintText(),
+                          hint: gameHint(_controller),
                         ),
                       ),
                     ],
@@ -264,15 +239,15 @@ class _GamePageState extends State<GamePage> {
                     PowerControl(
                       power: _controller.power,
                       onPowerChanged: _controller.setPower,
-                      onAimLeft: _canAim
+                      onAimLeft: _controller.canAim
                           ? () => _controller.adjustAim(-0.006)
                           : null,
-                      onAimRight: _canAim
+                      onAimRight: _controller.canAim
                           ? () => _controller.adjustAim(0.006)
                           : null,
                       onShoot: _controller.shoot,
-                      canShoot: _canShoot,
-                      hint: _hintText(),
+                      canShoot: _controller.canShoot,
+                      hint: gameHint(_controller),
                       compact: true,
                     ),
                   ],
@@ -284,15 +259,6 @@ class _GamePageState extends State<GamePage> {
       ),
     );
   }
-
-  bool get _canAim =>
-      _controller.phase == MatchPhase.aiming &&
-      _controller.isHumanTurn &&
-      !_controller.isEditingBalls;
-
-  bool get _canShoot =>
-      _canAim &&
-      (!_controller.needsPocketCall || _controller.calledPocket != null);
 
   String get _subtitle => switch (widget.mode) {
     GameMode.vsAi => '中式黑八 · ${widget.difficulty.label}',
@@ -330,7 +296,7 @@ class _GamePageState extends State<GamePage> {
             Positioned(
               left: 6,
               top: 6,
-              child: _PracticeToolbar(
+              child: PracticeToolbar(
                 editing: _controller.isEditingBalls,
                 canUndo: _controller.canUndoPracticeShot,
                 onToggleEdit: () => _controller.isEditingBalls
@@ -350,18 +316,14 @@ class _GamePageState extends State<GamePage> {
     bool tap = false,
     bool startDrag = false,
   }) {
-    final layout = TableLayout(size);
-    var point = layout.toTable(local);
-    point = point.clamp(
-      TableGeometry.ballRadius,
-      TableGeometry.width - TableGeometry.ballRadius,
-      TableGeometry.ballRadius,
-      TableGeometry.height - TableGeometry.ballRadius,
-    );
+    final pointer = TablePointer(TableLayout(size));
+    var point = pointer.toTable(local);
 
     if (_controller.isEditingBalls) {
       if (tap) return;
-      if (startDrag) _dragBallId = _nearestBallId(point);
+      if (startDrag) {
+        _dragBallId = pointer.ballToGrab(point, _controller.balls)?.id;
+      }
       final id = _dragBallId;
       if (id != null) _controller.moveBall(id, point);
       return;
@@ -372,44 +334,23 @@ class _GamePageState extends State<GamePage> {
       if (tap) _tryPlaceCue(point);
       return;
     }
-    if (!_canAim) return;
+    if (!_controller.canAim) return;
 
     // 攻打黑八时点击袋口完成指袋，再正常瞄准。
     if (tap && _controller.needsPocketCall) {
-      for (var index = 0; index < TableGeometry.pockets.length; index++) {
-        final pocket = TableGeometry.pockets[index];
-        if (pocket.distanceTo(point) < TableGeometry.pocketRadius * 2.6) {
-          _controller.setCalledPocket(index);
-          return;
-        }
+      final pocket = pointer.pocketAt(point);
+      if (pocket != null) {
+        _controller.setCalledPocket(pocket);
+        return;
       }
     }
 
     // 点击球体时自动吸附到球心，便于精确瞄准。
     if (tap) {
-      for (final ball in _controller.balls) {
-        if (!ball.active || ball.isCue) continue;
-        if (ball.position.distanceTo(point) < TableGeometry.ballRadius * 1.8) {
-          point = ball.position;
-          break;
-        }
-      }
+      final target = pointer.targetBallAt(point, _controller.balls);
+      if (target != null) point = target.position;
     }
     _controller.aimAt(point);
-  }
-
-  int? _nearestBallId(Vec2 point) {
-    int? nearest;
-    var distance = TableGeometry.ballRadius * 2.4;
-    for (final ball in _controller.balls) {
-      if (!ball.active) continue;
-      final current = ball.position.distanceTo(point);
-      if (current < distance) {
-        distance = current;
-        nearest = ball.id;
-      }
-    }
-    return nearest;
   }
 
   void _handlePointerEnd(Size size) {
@@ -425,113 +366,5 @@ class _GamePageState extends State<GamePage> {
     _placementPreview.value = null;
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('该位置无法摆放母球，请换一个位置')));
-  }
-
-  String _hintText() {
-    final controller = _controller;
-    if (controller.isPractice) {
-      if (controller.isEditingBalls) return '摆球模式：拖动任意球调整位置';
-      if (controller.phase == MatchPhase.shooting) return '球在运动中…';
-      return '自由练习：拖动球台瞄准，可摆球或重打本杆';
-    }
-    if (controller.needsPocketCall) {
-      final called = controller.calledPocket;
-      return called == null
-          ? '攻打黑八：先点击袋口指定目标袋'
-          : '已指定 ${TableGeometry.pocketNames[called]} · 调整力度后击球';
-    }
-    return switch (controller.phase) {
-      MatchPhase.gameOver => '对局结束',
-      MatchPhase.shooting => '球在运动中…',
-      MatchPhase.aiThinking => '电脑思考中…',
-      MatchPhase.placingCue => '自由球：拖动母球到合法位置',
-      MatchPhase.aiming => controller.isHumanTurn ? '拖动球台瞄准，调整力度后击球' : '电脑瞄准中…',
-    };
-  }
-}
-
-/// 练习模式浮层工具条：切换摆球与重打上一杆。
-class _PracticeToolbar extends StatelessWidget {
-  const _PracticeToolbar({
-    required this.editing,
-    required this.canUndo,
-    required this.onToggleEdit,
-    required this.onUndo,
-  });
-
-  final bool editing;
-  final bool canUndo;
-  final VoidCallback onToggleEdit;
-  final VoidCallback onUndo;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _ToolChip(
-          icon: editing ? Icons.check : Icons.open_with,
-          label: editing ? '完成摆球' : '摆球',
-          active: editing,
-          onTap: onToggleEdit,
-        ),
-        const SizedBox(width: 6),
-        _ToolChip(
-          icon: Icons.undo,
-          label: '重打',
-          onTap: canUndo ? onUndo : null,
-        ),
-      ],
-    );
-  }
-}
-
-class _ToolChip extends StatelessWidget {
-  const _ToolChip({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.active = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final enabled = onTap != null;
-    final foreground = active
-        ? colors.onPrimary
-        : (enabled ? colors.onSurface : colors.onSurfaceVariant);
-    return Material(
-      color: active ? colors.primary : colors.surface.withValues(alpha: 0.92),
-      borderRadius: BorderRadius.circular(18),
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 15, color: foreground),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: foreground,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

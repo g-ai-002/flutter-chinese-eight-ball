@@ -285,7 +285,7 @@ class EightBallAi {
     ShotOutcome outcome,
     PlayerGroup? group,
     bool onEight,
-    int calledPocket,
+    int targetPocket,
   ) {
     var score = 0.0;
     for (final event in outcome.potted) {
@@ -293,8 +293,8 @@ class EightBallAi {
       if (id == 0) {
         score -= _scratchPenalty;
       } else if (id == 8) {
-        // 指袋规则下，只有落进指定袋口才算赢。
-        final pocketMatched = event.pocketIndex == calledPocket;
+        // 指袋规则下，只有落进候选袋口才算赢。
+        final pocketMatched = outcome.pocketOf(8) == targetPocket;
         score += onEight && pocketMatched ? _eightWinBonus : -_eightLossPenalty;
       } else if (group == null || MatchRules.kindOfBall(id) == group.kind) {
         score += _ownPotBonus;

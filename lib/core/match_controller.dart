@@ -7,6 +7,7 @@ import '../services/log_service.dart';
 import 'ai.dart';
 import 'ball.dart';
 import 'physics.dart';
+import 'practice_session.dart';
 import 'rules.dart';
 import 'table_geometry.dart';
 import 'vec.dart';
@@ -37,6 +38,7 @@ class MatchController extends ChangeNotifier {
     math.Random? random,
   }) : _ai = EightBallAi(random: random),
        _rules = MatchRules(),
+       _practice = PracticeSession(),
        _simulation = ShotSimulation(balls: TableGeometry.rackBalls()) {
     aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
     _pushLog(isPractice ? '自由练习：拖动球台瞄准，可随时摆球或重打本杆' : '开球：${playerName(0)}先手');
@@ -56,6 +58,7 @@ class MatchController extends ChangeNotifier {
   final bool autoPlayAi;
 
   final EightBallAi _ai;
+  final PracticeSession _practice;
   final List<String> _history = [];
   final List<ShotEvent> pendingEffects = [];
 
@@ -70,9 +73,6 @@ class MatchController extends ChangeNotifier {
   bool _aiRunning = false;
   int _generation = 0;
   int? _calledPocket;
-  bool _editingBalls = false;
-  int _practiceShots = 0;
-  List<BallState>? _practiceRestore;
 
   MatchRules get rules => _rules;
   ShotSimulation get simulation => _simulation;
@@ -87,10 +87,17 @@ class MatchController extends ChangeNotifier {
   bool get isAiTurn => _isAiTurn;
   bool get isHumanTurn => !_isAiTurn;
   bool get isPractice => mode == GameMode.practice;
-  bool get isEditingBalls => _editingBalls;
-  int get shotCount => isPractice ? _practiceShots : _rules.shotNumber;
+  bool get isEditingBalls => _practice.editing;
+  int get shotCount => isPractice ? _practice.shots : _rules.shotNumber;
   bool get canUndoPracticeShot =>
-      isPractice && _practiceRestore != null && _phase == MatchPhase.aiming;
+      isPractice && _practice.canUndo && _phase == MatchPhase.aiming;
+
+  /// 当前玩家能否瞄准：AI 回合、球运动中与练习摆球时不可操作。
+  bool get canAim =>
+      _phase == MatchPhase.aiming && isHumanTurn && !isEditingBalls;
+
+  /// 当前玩家能否出杆：攻打黑八时还必须先指定袋口。
+  bool get canShoot => canAim && (!needsPocketCall || _calledPocket != null);
 
   /// 攻打黑八时已指定的袋口；未指定为 null。
   int? get calledPocket => _calledPocket;
@@ -178,29 +185,28 @@ class MatchController extends ChangeNotifier {
   }
 
   void shoot() {
-    if (_phase != MatchPhase.aiming || _isAiTurn || _editingBalls) return;
-    if (needsPocketCall && _calledPocket == null) return;
+    if (!canShoot) return;
     _fire();
   }
 
   /// 进入练习摆球：可拖动任意球调整位置。
   void beginBallEdit() {
     if (!isPractice || _phase != MatchPhase.aiming) return;
-    _editingBalls = true;
+    _practice.beginEdit();
     _pushLog('摆球模式：拖动任意球调整位置');
     notifyListeners();
   }
 
   void endBallEdit() {
-    if (!_editingBalls) return;
-    _editingBalls = false;
+    if (!_practice.editing) return;
+    _practice.endEdit();
     aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
     notifyListeners();
   }
 
   /// 练习模式移动一颗球，位置合法才生效。
   bool moveBall(int id, Vec2 position) {
-    if (!isPractice || !_editingBalls) return false;
+    if (!isPractice || !_practice.editing) return false;
     if (!TableGeometry.isValidBallPlacement(
       position,
       obstacles: balls,
@@ -221,15 +227,13 @@ class MatchController extends ChangeNotifier {
 
   /// 练习模式：把球局恢复到上一杆出杆前，便于重复练习同一杆。
   void undoPracticeShot() {
-    final restore = _practiceRestore;
-    if (!canUndoPracticeShot || restore == null) return;
+    if (!canUndoPracticeShot) return;
+    final restore = _practice.restoreShot();
+    if (restore == null) return;
     _simulation = ShotSimulation(balls: restore);
     pendingEffects.clear();
     _effectCursor = 0;
     _phase = MatchPhase.aiming;
-    _editingBalls = false;
-    if (_practiceShots > 0) _practiceShots--;
-    _practiceRestore = null;
     aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
     _pushLog('已恢复上一杆的球局');
     notifyListeners();
@@ -237,10 +241,7 @@ class MatchController extends ChangeNotifier {
 
   void _fire() {
     _onEightBefore = onEightFor(currentPlayer) ? 1 : 0;
-    if (isPractice) {
-      _practiceRestore = BallState.cloneAll(_simulation.balls);
-      _editingBalls = false;
-    }
+    if (isPractice) _practice.capture(_simulation.balls);
     _simulation = ShotSimulation(balls: _simulation.balls);
     pendingEffects.clear();
     _effectCursor = 0;
@@ -320,9 +321,7 @@ class MatchController extends ChangeNotifier {
     }
 
     _phase = MatchPhase.aiming;
-    if (!cueBall.active) {
-      _simulation.placeCue(_defaultCueSpot());
-    }
+    _restoreCueBall();
     aimAngle = angleOf(cueBall.position, TableGeometry.footSpot);
     notifyListeners();
     if (_isAiTurn) _scheduleAiTurn();
@@ -330,10 +329,8 @@ class MatchController extends ChangeNotifier {
 
   /// 练习模式没有回合与犯规：停稳后直接恢复瞄准，母球落袋则放回开球点。
   void _finishPracticeShot(ShotOutcome outcome) {
-    _practiceShots++;
-    if (!cueBall.active) {
-      _simulation.placeCue(_defaultCueSpot());
-    }
+    _practice.recordShot();
+    _restoreCueBall();
     _phase = MatchPhase.aiming;
     aimAngle = angleOf(cueBall.position, TableGeometry.footSpot);
     final potted = outcome.pottedIds.where((id) => id != 0).toList();
@@ -343,7 +340,7 @@ class MatchController extends ChangeNotifier {
     _pushLog(outcome.cuePotted ? '$target · 母球落袋，已放回开球点' : target);
     LogService.info(
       '练习: 落袋=${outcome.pottedIds} 首碰=${outcome.firstContact} '
-      '杆数=$_practiceShots',
+      '杆数=${_practice.shots}',
     );
     notifyListeners();
   }
@@ -356,7 +353,7 @@ class MatchController extends ChangeNotifier {
     _rules.isBreak = true;
     _rules.ballInHand = false;
     _calledPocket = null;
-    _editingBalls = false;
+    _practice.endEdit();
     _phase = MatchPhase.aiming;
     aimAngle = angleOf(cueBall.position, TableGeometry.footSpot);
     _pushLog('重新摆球');
@@ -373,34 +370,27 @@ class MatchController extends ChangeNotifier {
     _phase = MatchPhase.aiming;
   }
 
+  void _restoreCueBall() {
+    if (cueBall.active) return;
+    _simulation.placeCue(_defaultCueSpot());
+  }
+
+  /// AI 没有明确线路时，退化为离黑八最近的袋口。
+  int _nearestPocketToEight() {
+    for (final ball in balls) {
+      if (ball.active && ball.isEight) {
+        return TableGeometry.nearestPocket(ball.position);
+      }
+    }
+    return 0;
+  }
+
   Vec2 _defaultCueSpot() {
     return TableGeometry.nearestValidCueSpot(
           TableGeometry.headSpot,
           obstacles: balls,
         ) ??
         TableGeometry.center;
-  }
-
-  /// AI 没有明确线路时，退化为离黑八最近的袋口。
-  int _nearestPocketToEight() {
-    BallState? eight;
-    for (final ball in balls) {
-      if (ball.active && ball.isEight) {
-        eight = ball;
-        break;
-      }
-    }
-    if (eight == null) return 0;
-    var best = 0;
-    var nearest = double.infinity;
-    for (var index = 0; index < TableGeometry.pockets.length; index++) {
-      final distance = eight.position.distanceTo(TableGeometry.pockets[index]);
-      if (distance < nearest) {
-        nearest = distance;
-        best = index;
-      }
-    }
-    return best;
   }
 
   void _scheduleAiTurn() {
@@ -458,7 +448,8 @@ class MatchController extends ChangeNotifier {
 
     // 攻打黑八时 AI 自动指定候选线路的袋口，避免因未指袋而无法出杆。
     if (onEightFor(currentPlayer)) {
-      _calledPocket = shot.pocketIndex ?? _nearestPocketToEight();
+      final pocket = shot.pocketIndex ?? _nearestPocketToEight();
+      _calledPocket = pocket;
     }
 
     aimAngle = shot.angle;
@@ -488,9 +479,7 @@ class MatchController extends ChangeNotifier {
     _generation++;
     _rules = MatchRules();
     _calledPocket = null;
-    _editingBalls = false;
-    _practiceShots = 0;
-    _practiceRestore = null;
+    _practice.reset();
     _startRack();
     _history.clear();
     _pushLog(isPractice ? '自由练习：拖动球台瞄准，可随时摆球或重打本杆' : '开球：${playerName(0)}先手');

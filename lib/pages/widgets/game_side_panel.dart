@@ -84,15 +84,14 @@ class GameSidePanel extends StatelessWidget {
           PowerControl(
             power: controller.power,
             onPowerChanged: controller.setPower,
-            onAimLeft: controller.isHumanTurn
+            onAimLeft: controller.canAim
                 ? () => controller.adjustAim(-0.006)
                 : null,
-            onAimRight: controller.isHumanTurn
+            onAimRight: controller.canAim
                 ? () => controller.adjustAim(0.006)
                 : null,
             onShoot: controller.shoot,
-            canShoot:
-                controller.phase == MatchPhase.aiming && controller.isHumanTurn,
+            canShoot: controller.canShoot,
             hint: hint,
           ),
           const SizedBox(height: 12),

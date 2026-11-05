@@ -48,6 +48,14 @@ class ShotOutcome {
 
   List<int> get pottedIds => [for (final event in potted) event.ballId];
 
+  /// 指定球号落入的袋口编号；未落袋返回 null。
+  int? pocketOf(int ballId) {
+    for (final event in potted) {
+      if (event.ballId == ballId) return event.pocketIndex;
+    }
+    return null;
+  }
+
   /// 本杆首个落袋的目标球（不含母球），用于开球后确定球组。
   int? get firstPottedObject {
     for (final event in potted) {
