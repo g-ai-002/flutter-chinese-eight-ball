@@ -49,12 +49,4 @@ class TableLayout {
     (TableGeometry.width + railWidth * 2) * scale,
     (TableGeometry.height + railWidth * 2) * scale,
   );
-
-  bool containsTablePoint(Offset local) {
-    final point = toTable(local);
-    return point.x >= -railWidth &&
-        point.x <= TableGeometry.width + railWidth &&
-        point.y >= -railWidth &&
-        point.y <= TableGeometry.height + railWidth;
-  }
 }
