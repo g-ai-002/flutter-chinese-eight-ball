@@ -210,6 +210,37 @@ void main() {
     expect(controller.rules.shotNumber, 1);
   });
 
+  test('指袋前不能出杆，指袋后才允许击球', () {
+    final controller = MatchController(
+      mode: GameMode.twoPlayers,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+    _prepareOnEight(controller);
+
+    expect(controller.canAim, isTrue);
+    expect(controller.canShoot, isFalse);
+
+    controller.setCalledPocket(1);
+    expect(controller.canShoot, isTrue);
+  });
+
+  test('练习摆球时不可瞄准或出杆，结束摆球后恢复', () {
+    final controller = MatchController(
+      mode: GameMode.practice,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+
+    controller.beginBallEdit();
+    expect(controller.canAim, isFalse);
+    expect(controller.canShoot, isFalse);
+
+    controller.endBallEdit();
+    expect(controller.canAim, isTrue);
+    expect(controller.canShoot, isTrue);
+  });
+
   test('练习模式可拖动任意球摆位', () {
     final controller = MatchController(
       mode: GameMode.practice,

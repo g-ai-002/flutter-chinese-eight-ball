@@ -61,6 +61,22 @@ void main() {
     });
   });
 
+  group('袋口定位', () {
+    test('按距离找到最近袋口，超出点击范围返回 null', () {
+      expect(TableGeometry.nearestPocket(const Vec2(0.01, 0.01)), 0);
+      expect(TableGeometry.nearestPocket(const Vec2(2.53, 1.26)), 5);
+
+      expect(TableGeometry.pocketAt(const Vec2(0.01, 0.01)), 0);
+      expect(TableGeometry.pocketAt(TableGeometry.center), isNull);
+    });
+
+    test('袋口点击范围可单独放宽', () {
+      const nearCenter = Vec2(1.27, 0.12);
+      expect(TableGeometry.pocketAt(nearCenter), isNull);
+      expect(TableGeometry.pocketAt(nearCenter, tolerance: 0.2), 1);
+    });
+  });
+
   group('母球摆放', () {
     test('台面中央合法，越界与袋口位置非法', () {
       expect(TableGeometry.isValidCuePlacement(TableGeometry.center), isTrue);
