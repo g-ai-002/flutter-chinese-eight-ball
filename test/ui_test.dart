@@ -1,16 +1,51 @@
 import 'package:chinese_eight_ball/app.dart';
 import 'package:chinese_eight_ball/core/ai.dart';
 import 'package:chinese_eight_ball/core/match_controller.dart';
+import 'package:chinese_eight_ball/core/match_record.dart';
+import 'package:chinese_eight_ball/core/table_geometry.dart';
+import 'package:chinese_eight_ball/core/vec.dart';
 import 'package:chinese_eight_ball/pages/game_page.dart';
 import 'package:chinese_eight_ball/pages/help_page.dart';
+import 'package:chinese_eight_ball/pages/history_page.dart';
 import 'package:chinese_eight_ball/pages/home_page.dart';
+import 'package:chinese_eight_ball/pages/replay_page.dart';
 import 'package:chinese_eight_ball/pages/settings_page.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
+import 'package:chinese_eight_ball/services/match_history_service.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+MatchRecord sampleReplayRecord() {
+  final balls = TableGeometry.rackBalls();
+  final cue = balls.firstWhere((ball) => ball.isCue);
+  return MatchRecord(
+    id: 'replay-1',
+    createdAt: DateTime(2026, 11, 5, 20, 30),
+    mode: 'twoPlayers',
+    modeLabel: '双人对战',
+    difficultyLabel: '进阶',
+    humanSide: 0,
+    winner: 0,
+    winnerName: '玩家一',
+    title: '玩家一获胜',
+    playerWin: true,
+    endReason: '清台后打进黑八',
+    shots: [
+      ReplayShot(
+        player: 0,
+        balls: balls,
+        angle: angleOf(cue.position, TableGeometry.footSpot),
+        power: 0.8,
+        calledPocket: null,
+        result: '开球',
+        potted: const [],
+      ),
+    ],
+  );
+}
 
 Future<SettingsProvider> pumpPage(WidgetTester tester, Widget page) async {
   final storage = await StorageService.instance;
@@ -42,8 +77,9 @@ void main() {
     expect(find.text('人机对战'), findsOneWidget);
     expect(find.text('双人对战'), findsOneWidget);
     expect(find.text('自由练习'), findsOneWidget);
+    expect(find.text('最近对局'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.2.1'), findsOneWidget);
+    expect(find.textContaining('v0.3.0'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
@@ -72,6 +108,51 @@ void main() {
     expect(find.text('开球'), findsOneWidget);
     expect(find.text('犯规与自由球'), findsOneWidget);
     expect(find.text('黑八胜负'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -420));
+    await tester.pumpAndSettle();
+    expect(find.text('对局回放'), findsOneWidget);
+  });
+
+  testWidgets('最近对局为空时显示引导文案', (tester) async {
+    await pumpPage(tester, const HistoryPage());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('最近对局'), findsOneWidget);
+    expect(find.text('还没有对局记录'), findsOneWidget);
+  });
+
+  testWidgets('最近对局列出已保存记录并可打开回放', (tester) async {
+    await MatchHistoryService.instance.add(sampleReplayRecord());
+    await pumpPage(tester, const HistoryPage());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('玩家一获胜'), findsOneWidget);
+    expect(find.textContaining('双人对战'), findsOneWidget);
+    expect(find.text('清台后打进黑八'), findsOneWidget);
+
+    await tester.tap(find.text('玩家一获胜'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('对局回放'), findsOneWidget);
+    expect(find.textContaining('第 1 杆'), findsWidgets);
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
+  testWidgets('回放页播放按钮推进到终局', (tester) async {
+    await pumpPage(tester, ReplayPage(record: sampleReplayRecord()));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    for (var i = 0; i < 420; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(find.byIcon(Icons.replay), findsOneWidget);
+    expect(find.text('1 / 1 杆'), findsOneWidget);
   });
 
   testWidgets('双人对局页渲染球台与击球按钮', (tester) async {

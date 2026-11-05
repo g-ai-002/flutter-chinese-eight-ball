@@ -7,6 +7,15 @@ enum BallKind { cue, solid, stripe, eight }
 class BallSpec {
   const BallSpec(this.id, this.kind);
 
+  /// 按球号还原静态信息：0 母球、8 黑八、1-7 全色、9-15 花色。
+  factory BallSpec.fromId(int id) {
+    if (id == 0) return kCueBall;
+    final kind = id == 8
+        ? BallKind.eight
+        : (id < 8 ? BallKind.solid : BallKind.stripe);
+    return BallSpec(id, kind);
+  }
+
   final int id;
   final BallKind kind;
 

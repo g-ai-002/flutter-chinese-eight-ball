@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import 'game_page.dart';
 import 'help_page.dart';
+import 'history_page.dart';
 import 'settings_page.dart';
 import 'widgets/entry_tile.dart';
 import 'widgets/table_preview.dart';
@@ -142,6 +143,17 @@ class HomePage extends StatelessWidget {
       title: GameMode.practice.label,
       subtitle: '任意摆球 · 重打同一杆',
       onTap: () => _startGame(context, settings, GameMode.practice),
+    ),
+    EntryTile(
+      leading: EntryBadge(
+        icon: Icons.movie_filter_outlined,
+        accent: colors.primary,
+      ),
+      title: '最近对局',
+      subtitle: '逐杆回放 · 复盘每一杆',
+      onTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const HistoryPage())),
     ),
     EntryTile(
       leading: const EntryBadge(

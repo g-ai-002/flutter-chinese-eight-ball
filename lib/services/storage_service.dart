@@ -71,4 +71,10 @@ class StorageService {
   int get humanSide => _p.getInt(AppConstants.prefKeyHumanSide) ?? 0;
   Future<void> setHumanSide(int value) =>
       _write((p) => p.setInt(AppConstants.prefKeyHumanSide, value));
+
+  /// 最近对局记录的 JSON，解析与裁剪由 `MatchHistory` 负责。
+  String? get matchHistoryJson =>
+      _p.getString(AppConstants.prefKeyMatchHistory);
+  Future<void> setMatchHistoryJson(String value) =>
+      _write((p) => p.setString(AppConstants.prefKeyMatchHistory, value));
 }

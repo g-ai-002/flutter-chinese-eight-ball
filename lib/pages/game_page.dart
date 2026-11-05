@@ -6,13 +6,16 @@ import 'package:provider/provider.dart';
 
 import '../core/ai.dart';
 import '../core/match_controller.dart';
+import '../core/match_record.dart';
 import '../core/vec.dart';
 import '../flame/eight_ball_game.dart';
 import '../flame/table_layout.dart';
 import '../flame/table_pointer.dart';
 import '../providers/settings_provider.dart';
+import '../services/match_history_service.dart';
 import 'game_hint.dart';
 import 'help_page.dart';
+import 'replay_page.dart';
 import 'widgets/compact_players.dart';
 import 'widgets/game_over_dialog.dart';
 import 'widgets/game_side_panel.dart';
@@ -44,6 +47,7 @@ class _GamePageState extends State<GamePage> {
   EightBallGame? _game;
   bool _dialogOpen = false;
   int? _dragBallId;
+  MatchRecord? _savedRecord;
 
   @override
   void initState() {
@@ -88,9 +92,13 @@ class _GamePageState extends State<GamePage> {
     final winner = rules.winner ?? 0;
     final playerWin =
         widget.mode == GameMode.twoPlayers || winner == widget.humanSide;
-    final title = widget.mode == GameMode.twoPlayers
-        ? '${_controller.playerName(winner)}获胜'
-        : (playerWin ? '你赢了' : '电脑获胜');
+    final title = _controller.matchTitle;
+    final record = _controller.finishedRecord;
+    if (record != null && _savedRecord?.id != record.id) {
+      await MatchHistoryService.instance.add(record);
+      _savedRecord = record;
+    }
+    if (!mounted) return;
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -103,9 +111,24 @@ class _GamePageState extends State<GamePage> {
           Navigator.of(dialogContext).pop();
           Navigator.of(context).pop();
         },
+        onReplay: record == null
+            ? null
+            : () async {
+                Navigator.of(dialogContext).pop();
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ReplayPage(record: record),
+                  ),
+                );
+                // 回放结束后回到终局球台，重新给出「再来一局」入口。
+                if (!mounted || _controller.phase != MatchPhase.gameOver) return;
+                _dialogOpen = true;
+                await _showGameOver();
+              },
         onRestart: () {
           Navigator.of(dialogContext).pop();
           _controller.restart();
+          _savedRecord = null;
           _dialogOpen = false;
         },
       ),

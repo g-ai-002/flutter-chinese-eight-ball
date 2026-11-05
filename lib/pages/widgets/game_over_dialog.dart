@@ -12,6 +12,7 @@ class GameOverDialog extends StatelessWidget {
     required this.shots,
     required this.onHome,
     required this.onRestart,
+    this.onReplay,
   });
 
   final String title;
@@ -20,6 +21,9 @@ class GameOverDialog extends StatelessWidget {
   final int shots;
   final VoidCallback onHome;
   final VoidCallback onRestart;
+
+  /// 有逐杆记录时提供回放入口，练习模式为 null。
+  final VoidCallback? onReplay;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +54,12 @@ class GameOverDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(onPressed: onHome, child: const Text('返回首页')),
+        if (onReplay != null)
+          OutlinedButton.icon(
+            onPressed: onReplay,
+            icon: const Icon(Icons.movie_filter_outlined, size: 18),
+            label: const Text('查看回放'),
+          ),
         FilledButton(onPressed: onRestart, child: const Text('再来一局')),
       ],
     );

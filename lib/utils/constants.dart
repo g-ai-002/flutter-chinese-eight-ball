@@ -9,7 +9,7 @@ class AppConstants {
 
   static const String appName = '中式黑八';
   static const String appNameEn = 'CHINESE EIGHT BALL';
-  static const String version = '0.2.1';
+  static const String version = '0.3.0';
   static const String appDirName = 'FlutterChineseEightBall';
 
   static const String prefKeyDarkMode = 'dark_mode';
@@ -20,6 +20,7 @@ class AppConstants {
   static const String prefKeySound = 'sound_enabled';
   static const String prefKeyMusic = 'music_enabled';
   static const String prefKeyHaptics = 'haptics_enabled';
+  static const String prefKeyMatchHistory = 'match_history';
 
   /// 最近击球记录保留条数（界面侧栏展示）。
   static const int maxVisibleLog = 6;

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../services/log_service.dart';
 import 'ai.dart';
 import 'ball.dart';
+import 'match_record.dart';
 import 'physics.dart';
 import 'practice_session.dart';
 import 'rules.dart';
@@ -39,6 +40,12 @@ class MatchController extends ChangeNotifier {
   }) : _ai = EightBallAi(random: random),
        _rules = MatchRules(),
        _practice = PracticeSession(),
+       _recorder = MatchRecorder(
+         mode: mode.name,
+         modeLabel: mode.label,
+         difficultyLabel: difficulty.label,
+         humanSide: humanSide,
+       ),
        _simulation = ShotSimulation(balls: TableGeometry.rackBalls()) {
     aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
     _pushLog(isPractice ? '自由练习：拖动球台瞄准，可随时摆球或重打本杆' : '开球：${playerName(0)}先手');
@@ -59,6 +66,7 @@ class MatchController extends ChangeNotifier {
 
   final EightBallAi _ai;
   final PracticeSession _practice;
+  final MatchRecorder _recorder;
   final List<String> _history = [];
   final List<ShotEvent> pendingEffects = [];
 
@@ -73,6 +81,7 @@ class MatchController extends ChangeNotifier {
   bool _aiRunning = false;
   int _generation = 0;
   int? _calledPocket;
+  MatchRecord? _finishedRecord;
 
   MatchRules get rules => _rules;
   ShotSimulation get simulation => _simulation;
@@ -101,6 +110,16 @@ class MatchController extends ChangeNotifier {
 
   /// 攻打黑八时已指定的袋口；未指定为 null。
   int? get calledPocket => _calledPocket;
+
+  /// 对局结束时生成的逐杆记录，供保存与回放；练习模式与对局中为 null。
+  MatchRecord? get finishedRecord => _finishedRecord;
+
+  /// 终局标题：双人显示获胜方，人机站在玩家视角。
+  String get matchTitle {
+    final result = _rules.winner ?? 0;
+    if (mode == GameMode.twoPlayers) return '${playerName(result)}获胜';
+    return result == humanSide ? '你赢了' : '电脑获胜';
+  }
 
   /// 当前是否需要先指袋才能出杆（练习模式不受此限制）。
   bool get needsPocketCall =>
@@ -241,7 +260,17 @@ class MatchController extends ChangeNotifier {
 
   void _fire() {
     _onEightBefore = onEightFor(currentPlayer) ? 1 : 0;
-    if (isPractice) _practice.capture(_simulation.balls);
+    if (isPractice) {
+      _practice.capture(_simulation.balls);
+    } else {
+      _recorder.beginShot(
+        player: currentPlayer,
+        balls: balls,
+        angle: aimAngle,
+        power: power,
+        calledPocket: _calledPocket,
+      );
+    }
     _simulation = ShotSimulation(balls: _simulation.balls);
     pendingEffects.clear();
     _effectCursor = 0;
@@ -288,6 +317,7 @@ class MatchController extends ChangeNotifier {
       calledPocket: _calledPocket,
     );
     _calledPocket = null;
+    _recorder.endShot(result: ruling.message, potted: outcome.pottedIds);
     _pushLog(ruling.message);
     LogService.info(
       '裁定: 落袋=${outcome.pottedIds} 首碰=${outcome.firstContact} '
@@ -297,6 +327,16 @@ class MatchController extends ChangeNotifier {
 
     if (ruling.gameOver) {
       _phase = MatchPhase.gameOver;
+      _finishedRecord = _recorder.finish(
+        winner: ruling.winner ?? 0,
+        winnerName: playerName(ruling.winner ?? 0),
+        title: matchTitle,
+        playerWin: mode == GameMode.twoPlayers || ruling.winner == humanSide,
+        reason: ruling.endReason ?? ruling.message,
+      );
+      LogService.info(
+        '对局结束: $matchTitle · ${ruling.endReason} · 共 ${_recorder.shotCount} 杆',
+      );
       notifyListeners();
       return;
     }
@@ -480,6 +520,8 @@ class MatchController extends ChangeNotifier {
     _rules = MatchRules();
     _calledPocket = null;
     _practice.reset();
+    _recorder.clear();
+    _finishedRecord = null;
     _startRack();
     _history.clear();
     _pushLog(isPractice ? '自由练习：拖动球台瞄准，可随时摆球或重打本杆' : '开球：${playerName(0)}先手');
