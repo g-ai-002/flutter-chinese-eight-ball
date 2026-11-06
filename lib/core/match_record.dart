@@ -113,6 +113,10 @@ class MatchRecord {
 
   int get shotCount => shots.length;
 
+  /// 本场打进的目标球总数（不含母球）。
+  int get pottedTargets =>
+      shots.fold(0, (sum, shot) => sum + shot.pottedTargets);
+
   bool get isVersusAi => mode == 'vsAi';
 
   bool get isTwoPlayers => mode == 'twoPlayers';

@@ -131,5 +131,5 @@ class MatchStats {
   double get averageShots => matches == 0 ? 0 : shots / matches;
 
   /// 进球率：每杆平均打进的目标球数（0~1 之间不保证，可能一杆多球）。
-  double get potRate => shots == 0 ? 0 : potted / shots;
+  double get potRate => potRateOf(shots, potted);
 }

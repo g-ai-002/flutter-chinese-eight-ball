@@ -1,5 +1,8 @@
 import 'match_record.dart';
 
+/// 进球率：每杆平均打进的目标球数，杆数为零时返回 0。
+double potRateOf(int shots, int potted) => shots == 0 ? 0 : potted / shots;
+
 /// 逐杆进球统计：累计杆数、进球数、单杆最多进球与最长连续进球。
 ///
 /// 母球（0 号）不计入进球；连续进球按同一球手的连续进球杆数计算，

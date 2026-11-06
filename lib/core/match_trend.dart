@@ -1,4 +1,5 @@
 import 'match_record.dart';
+import 'shot_tally.dart';
 
 /// 单场走势：进球率用于柱高，人机对局额外记录胜负。
 class TrendPoint {
@@ -16,7 +17,7 @@ class TrendPoint {
   /// 仅人机对局有胜负，双人对局为 null。
   final bool? win;
 
-  double get potRate => shots == 0 ? 0 : potted / shots;
+  double get potRate => potRateOf(shots, potted);
 }
 
 /// 最近若干场对局走势：按时间从旧到新排列，供统计页图表绘制。
@@ -33,8 +34,8 @@ class MatchTrend {
       for (final record in recent.take(limit).toList().reversed)
         TrendPoint(
           createdAt: record.createdAt,
-          shots: record.shots.length,
-          potted: record.shots.fold(0, (sum, shot) => sum + shot.pottedTargets),
+          shots: record.shotCount,
+          potted: record.pottedTargets,
           win: record.isVersusAi ? record.playerWin : null,
         ),
     ]);
@@ -52,7 +53,7 @@ class MatchTrend {
         : points.sublist(points.length - 3);
     final shots = recent.fold(0, (sum, point) => sum + point.shots);
     final potted = recent.fold(0, (sum, point) => sum + point.potted);
-    return shots == 0 ? 0 : potted / shots;
+    return potRateOf(shots, potted);
   }
 }
 
@@ -72,7 +73,7 @@ class DailyPoint {
 
   bool get isEmpty => matches == 0;
 
-  double get potRate => shots == 0 ? 0 : potted / shots;
+  double get potRate => potRateOf(shots, potted);
 }
 
 /// 近 [days] 天的对局活动：按日期从旧到新排列，没有对局的日期补零，
@@ -86,35 +87,29 @@ class DailyTrend {
     DateTime? now,
   }) {
     final today = _dateOnly(now ?? DateTime.now());
-    final buckets = {
-      for (var i = days - 1; i >= 0; i--)
-        DateTime(today.year, today.month, today.day - i): <MatchRecord>[],
-    };
+    final byDay = <DateTime, List<MatchRecord>>{};
     for (final record in records) {
-      buckets[_dateOnly(record.createdAt)]?.add(record);
+      (byDay[_dateOnly(record.createdAt)] ??= []).add(record);
     }
     return DailyTrend([
-      for (final MapEntry(key: date, value: day) in buckets.entries)
-        DailyPoint(
-          date: date,
-          matches: day.length,
-          shots: day.fold(0, (sum, record) => sum + record.shots.length),
-          potted: day.fold(
-            0,
-            (sum, record) =>
-                sum +
-                record.shots.fold(
-                  0,
-                  (inner, shot) => inner + shot.pottedTargets,
-                ),
-          ),
-        ),
+      for (var i = days - 1; i >= 0; i--)
+        _dayPoint(DateTime(today.year, today.month, today.day - i), byDay),
     ]);
   }
 
   final List<DailyPoint> points;
 
   int get matches => points.fold(0, (sum, point) => sum + point.matches);
+}
+
+DailyPoint _dayPoint(DateTime date, Map<DateTime, List<MatchRecord>> byDay) {
+  final day = byDay[date] ?? const <MatchRecord>[];
+  return DailyPoint(
+    date: date,
+    matches: day.length,
+    shots: day.fold(0, (sum, record) => sum + record.shotCount),
+    potted: day.fold(0, (sum, record) => sum + record.pottedTargets),
+  );
 }
 
 DateTime _dateOnly(DateTime value) =>

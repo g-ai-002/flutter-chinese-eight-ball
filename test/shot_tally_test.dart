@@ -4,6 +4,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/record_factory.dart';
 
 void main() {
+  test('进球率在零杆时返回零，否则按杆数平均', () {
+    expect(potRateOf(0, 3), 0);
+    expect(potRateOf(4, 3), closeTo(0.75, 1e-9));
+  });
+
+  test('记录级杆数与进球数不展开逐杆统计', () {
+    final record = testRecord(
+      index: 0,
+      shots: [
+        (0, [1, 2]),
+        (1, [0]),
+        (0, []),
+      ],
+    );
+
+    expect(record.shotCount, 3);
+    expect(record.pottedTargets, 2);
+  });
+
   test('空记录返回零值', () {
     final tally = ShotTally.of(const []);
     expect(tally.shots, 0);
