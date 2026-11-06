@@ -290,17 +290,21 @@ void main() {
 
   testWidgets('数据统计页汇总已保存对局', (tester) async {
     await MatchHistoryService.instance.add(sampleReplayRecord());
-    await pumpPage(tester, const StatsPage());
+    await pumpPage(tester, StatsPage(now: DateTime(2026, 11, 5)));
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('总览'), findsOneWidget);
     expect(find.text('近期走势'), findsOneWidget);
     expect(find.text('近 1 场 · 柱高为进球率'), findsOneWidget);
+    expect(find.text('近 7 天'), findsOneWidget);
+    expect(find.text('近 7 天 · 1 场 · 柱高为单日进球率'), findsOneWidget);
     expect(find.text('总场次'), findsOneWidget);
     expect(find.text('双人场次'), findsOneWidget);
     expect(find.text('场均杆数'), findsOneWidget);
-    expect(find.text('最近战绩'), findsOneWidget);
     expect(find.text('1.0'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -260));
+    await tester.pump();
+    expect(find.text('最近战绩'), findsOneWidget);
     expect(find.text('还没有人机对局'), findsOneWidget);
   });
 
@@ -309,6 +313,9 @@ void main() {
     await pumpPage(tester, const StatsPage());
     await tester.pump(const Duration(milliseconds: 100));
 
+    expect(find.text('100%'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -260));
+    await tester.pump();
     expect(find.text('人机难度'), findsOneWidget);
     expect(find.text('高手'), findsOneWidget);
     expect(find.textContaining('1 / 1 胜'), findsOneWidget);
@@ -316,7 +323,6 @@ void main() {
     await tester.pump();
     expect(find.text('1 胜 0 负'), findsOneWidget);
     expect(find.text('胜'), findsOneWidget);
-    expect(find.text('100%'), findsOneWidget);
   });
 
   testWidgets('最近对局页可进入数据统计', (tester) async {

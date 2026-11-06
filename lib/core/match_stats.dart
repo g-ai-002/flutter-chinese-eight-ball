@@ -64,9 +64,13 @@ class MatchStats {
     required this.difficulties,
     required this.recentAiResults,
     required this.trend,
+    required this.daily,
   });
 
-  factory MatchStats.fromRecords(Iterable<MatchRecord> records) {
+  factory MatchStats.fromRecords(
+    Iterable<MatchRecord> records, {
+    DateTime? now,
+  }) {
     final all = [...records]
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final aiRecords = [
@@ -89,6 +93,7 @@ class MatchStats {
         for (final record in aiRecords.take(5)) record.playerWin,
       ],
       trend: MatchTrend.of(all),
+      daily: DailyTrend.of(all, now: now),
     );
   }
 
@@ -113,6 +118,9 @@ class MatchStats {
 
   /// 最近 8 场对局走势，含近期进球率，供图表绘制。
   final MatchTrend trend;
+
+  /// 近 7 天按天聚合的活动，供每日柱状图绘制。
+  final DailyTrend daily;
 
   bool get isEmpty => matches == 0;
 

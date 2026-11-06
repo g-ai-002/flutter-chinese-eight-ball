@@ -55,3 +55,67 @@ class MatchTrend {
     return shots == 0 ? 0 : potted / shots;
   }
 }
+
+/// 单日对局聚合：当天场次与进球表现。
+class DailyPoint {
+  const DailyPoint({
+    required this.date,
+    required this.matches,
+    required this.shots,
+    required this.potted,
+  });
+
+  final DateTime date;
+  final int matches;
+  final int shots;
+  final int potted;
+
+  bool get isEmpty => matches == 0;
+
+  double get potRate => shots == 0 ? 0 : potted / shots;
+}
+
+/// 近 [days] 天的对局活动：按日期从旧到新排列，没有对局的日期补零，
+/// 供统计页绘制每日柱状图；只读取本机记录，不修改任何数据。
+class DailyTrend {
+  const DailyTrend(this.points);
+
+  factory DailyTrend.of(
+    Iterable<MatchRecord> records, {
+    int days = 7,
+    DateTime? now,
+  }) {
+    final today = _dateOnly(now ?? DateTime.now());
+    final buckets = {
+      for (var i = days - 1; i >= 0; i--)
+        DateTime(today.year, today.month, today.day - i): <MatchRecord>[],
+    };
+    for (final record in records) {
+      buckets[_dateOnly(record.createdAt)]?.add(record);
+    }
+    return DailyTrend([
+      for (final MapEntry(key: date, value: day) in buckets.entries)
+        DailyPoint(
+          date: date,
+          matches: day.length,
+          shots: day.fold(0, (sum, record) => sum + record.shots.length),
+          potted: day.fold(
+            0,
+            (sum, record) =>
+                sum +
+                record.shots.fold(
+                  0,
+                  (inner, shot) => inner + shot.pottedTargets,
+                ),
+          ),
+        ),
+    ]);
+  }
+
+  final List<DailyPoint> points;
+
+  int get matches => points.fold(0, (sum, point) => sum + point.matches);
+}
+
+DateTime _dateOnly(DateTime value) =>
+    DateTime(value.year, value.month, value.day);

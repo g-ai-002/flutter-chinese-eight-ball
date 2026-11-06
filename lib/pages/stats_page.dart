@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/match_stats.dart';
 import '../services/match_history_service.dart';
 import 'widgets/section_card.dart';
+import 'widgets/stats_daily.dart';
 import 'widgets/stats_difficulty_list.dart';
 import 'widgets/stats_empty.dart';
 import 'widgets/stats_recent_form.dart';
@@ -11,7 +12,10 @@ import 'widgets/stats_trend.dart';
 
 /// 数据统计：聚合本机最近对局，展示胜率、杆数、进球与难度表现。
 class StatsPage extends StatefulWidget {
-  const StatsPage({super.key});
+  const StatsPage({super.key, this.now});
+
+  /// 统计「近 7 天」的基准时间，为空时取当前时间；测试可注入固定时间。
+  final DateTime? now;
 
   @override
   State<StatsPage> createState() => _StatsPageState();
@@ -30,7 +34,7 @@ class _StatsPageState extends State<StatsPage> {
   Future<void> _load() async {
     final records = await MatchHistoryService.instance.load();
     if (!mounted) return;
-    setState(() => _stats = MatchStats.fromRecords(records));
+    setState(() => _stats = MatchStats.fromRecords(records, now: widget.now));
   }
 
   @override
@@ -78,6 +82,11 @@ class _StatsBody extends StatelessWidget {
         SectionCard(
           title: '近期走势',
           children: [StatsTrend(trend: stats.trend)],
+        ),
+        const SizedBox(height: 12),
+        SectionCard(
+          title: '近 7 天',
+          children: [StatsDaily(trend: stats.daily)],
         ),
         const SizedBox(height: 12),
         SectionCard(

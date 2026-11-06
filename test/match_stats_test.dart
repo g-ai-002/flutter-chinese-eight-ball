@@ -151,4 +151,16 @@ void main() {
     expect(points[1].potted, 2);
     expect(points[1].potRate, closeTo(1, 1e-9));
   });
+
+  test('统计包含按基准时间聚合的近 7 天活动', () {
+    final stats = MatchStats.fromRecords([
+      testRecord(index: 0),
+      testRecord(index: 1, createdAt: DateTime(2026, 11, 4, 20)),
+    ], now: DateTime(2026, 11, 5, 23));
+
+    expect(stats.daily.points, hasLength(7));
+    expect(stats.daily.points.last.date, DateTime(2026, 11, 5));
+    expect(stats.daily.points.last.matches, 1);
+    expect(stats.daily.points[5].matches, 1);
+  });
 }

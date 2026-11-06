@@ -5,6 +5,7 @@ import 'package:chinese_eight_ball/core/vec.dart';
 /// 构造统计与回放用例所需的对局记录，按 [index] 分钟递增时间。
 MatchRecord testRecord({
   required int index,
+  DateTime? createdAt,
   String mode = 'vsAi',
   bool win = true,
   String difficulty = '进阶',
@@ -14,7 +15,8 @@ MatchRecord testRecord({
   final cue = balls.firstWhere((ball) => ball.isCue);
   return MatchRecord(
     id: 'record-$index',
-    createdAt: DateTime(2026, 11, 5, 20).add(Duration(minutes: index)),
+    createdAt:
+        createdAt ?? DateTime(2026, 11, 5, 20).add(Duration(minutes: index)),
     mode: mode,
     modeLabel: mode == 'vsAi' ? '人机对战' : '双人对战',
     difficultyLabel: difficulty,
