@@ -485,6 +485,13 @@ class MatchController extends ChangeNotifier {
         onEight: onEightFor(currentPlayer),
         difficulty: difficulty,
       );
+      if (shot.isSafety) {
+        _pushLog('${playerName(currentPlayer)}选择防守');
+        LogService.info(
+          'AI 防守: 目标球=${shot.targetBallId} '
+          '力度=${(shot.power * 100).round()}% 评分=${shot.score.toStringAsFixed(1)}',
+        );
+      }
     }
 
     // 攻打黑八时 AI 自动指定候选线路的袋口，避免因未指袋而无法出杆。

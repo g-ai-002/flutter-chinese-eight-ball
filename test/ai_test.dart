@@ -109,4 +109,58 @@ void main() {
         6;
     expect(easy, greaterThan(hard));
   });
+
+  test('没有进球线路时选择防守并轻碰合法目标球', () {
+    final balls = [ball(0, 0.5, 0.66), ball(1, 0.03, 0.635), ball(8, 1.9, 0.8)];
+    final ai = EightBallAi(random: math.Random(13));
+    final shot = ai.decide(
+      balls: balls,
+      group: PlayerGroup.solids,
+      onEight: false,
+      difficulty: AiDifficulty.hard,
+    );
+
+    expect(shot.isSafety, isTrue);
+    expect(shot.targetBallId, 1);
+    expect(shot.power, lessThanOrEqualTo(0.6));
+
+    final simulation = ShotSimulation(balls: balls);
+    simulation.strike(shot.angle, shot.power);
+    final outcome = simulation.simulateToRest(limit: 10);
+    expect(outcome.firstContact, 1);
+    expect(outcome.cuePotted, isFalse);
+  });
+
+  test('有把握的进球仍选择进攻', () {
+    final balls = [ball(0, 1.27, 1.0), ball(1, 1.27, 0.5)];
+    final ai = EightBallAi(random: math.Random(17));
+    final shot = ai.decide(
+      balls: balls,
+      group: PlayerGroup.solids,
+      onEight: false,
+      difficulty: AiDifficulty.hard,
+    );
+
+    expect(shot.isSafety, isFalse);
+    expect(shot.pocketIndex, 1);
+  });
+
+  test('进球后母球留在台面且不落袋', () {
+    final balls = [ball(0, 1.27, 0.95), ball(1, 1.27, 0.55)];
+    final ai = EightBallAi(random: math.Random(19));
+    final shot = ai.decide(
+      balls: balls,
+      group: PlayerGroup.solids,
+      onEight: false,
+      difficulty: AiDifficulty.hard,
+    );
+
+    final simulation = ShotSimulation(balls: balls);
+    simulation.strike(shot.angle, shot.power);
+    final outcome = simulation.simulateToRest(limit: 10);
+    expect(outcome.pottedIds, contains(1));
+    expect(outcome.cuePotted, isFalse);
+    expect(simulation.cueBall.position.x, inInclusiveRange(0, 2.54));
+    expect(simulation.cueBall.position.y, inInclusiveRange(0, 1.27));
+  });
 }
