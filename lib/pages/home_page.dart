@@ -11,6 +11,7 @@ import 'game_page.dart';
 import 'help_page.dart';
 import 'history_page.dart';
 import 'settings_page.dart';
+import 'stats_page.dart';
 import 'widgets/entry_tile.dart';
 import 'widgets/table_preview.dart';
 
@@ -151,9 +152,19 @@ class HomePage extends StatelessWidget {
       ),
       title: '最近对局',
       subtitle: '逐杆回放 · 复盘每一杆',
-      onTap: () => Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const HistoryPage())),
+      onTap: () => Navigator.of(context)
+          .push(MaterialPageRoute<void>(builder: (_) => const HistoryPage())),
+    ),
+    EntryTile(
+      leading: EntryBadge(
+        icon: Icons.query_stats_outlined,
+        accent: colors.tertiary,
+      ),
+      title: '数据统计',
+      subtitle: '胜率 · 场均杆数 · 进球表现',
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute<void>(builder: (_) => const StatsPage())),
     ),
     EntryTile(
       leading: const EntryBadge(

@@ -4,6 +4,7 @@ import '../core/match_history.dart';
 import '../core/match_record.dart';
 import '../services/match_history_service.dart';
 import 'replay_page.dart';
+import 'stats_page.dart';
 import 'widgets/history_card.dart';
 
 /// 最近对局：展示本机保存的对局结果，点击进入逐杆回放。
@@ -66,6 +67,11 @@ class _HistoryPageState extends State<HistoryPage> {
     ).push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
   }
 
+  void _openStats() {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const StatsPage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final records = _records;
@@ -73,6 +79,11 @@ class _HistoryPageState extends State<HistoryPage> {
       appBar: AppBar(
         title: const Text('最近对局'),
         actions: [
+          IconButton(
+            tooltip: '数据统计',
+            onPressed: _openStats,
+            icon: const Icon(Icons.query_stats_outlined, size: 22),
+          ),
           if (records != null && records.isNotEmpty)
             IconButton(
               tooltip: '清空记录',

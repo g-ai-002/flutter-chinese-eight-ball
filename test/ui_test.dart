@@ -10,6 +10,7 @@ import 'package:chinese_eight_ball/pages/history_page.dart';
 import 'package:chinese_eight_ball/pages/home_page.dart';
 import 'package:chinese_eight_ball/pages/replay_page.dart';
 import 'package:chinese_eight_ball/pages/settings_page.dart';
+import 'package:chinese_eight_ball/pages/stats_page.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/match_history_service.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
@@ -78,8 +79,9 @@ void main() {
     expect(find.text('双人对战'), findsOneWidget);
     expect(find.text('自由练习'), findsOneWidget);
     expect(find.text('最近对局'), findsOneWidget);
+    expect(find.text('数据统计'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.3.1'), findsOneWidget);
+    expect(find.textContaining('v0.4.0'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
@@ -212,5 +214,37 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.text('玩家一出杆'), findsOneWidget);
     await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('数据统计为空时显示引导文案', (tester) async {
+    await pumpPage(tester, const StatsPage());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('数据统计'), findsOneWidget);
+    expect(find.text('还没有可统计的对局'), findsOneWidget);
+  });
+
+  testWidgets('数据统计页汇总已保存对局', (tester) async {
+    await MatchHistoryService.instance.add(sampleReplayRecord());
+    await pumpPage(tester, const StatsPage());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('总览'), findsOneWidget);
+    expect(find.text('总场次'), findsOneWidget);
+    expect(find.text('双人场次'), findsOneWidget);
+    expect(find.text('场均杆数'), findsOneWidget);
+    expect(find.text('最近战绩'), findsOneWidget);
+    expect(find.text('1.0'), findsOneWidget);
+    expect(find.text('还没有人机对局'), findsOneWidget);
+  });
+
+  testWidgets('最近对局页可进入数据统计', (tester) async {
+    await pumpPage(tester, const HistoryPage());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.byTooltip('数据统计'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('还没有可统计的对局'), findsOneWidget);
   });
 }
