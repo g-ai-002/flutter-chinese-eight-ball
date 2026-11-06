@@ -25,5 +25,8 @@ String formatAngle(double radians) {
   return '${degrees.toStringAsFixed(1)}°';
 }
 
+/// 0~1 的比例显示为整数百分比，例如 `0.625` → `63%`。
+String formatPercent(double ratio) => '${(ratio * 100).round()}%';
+
 String formatLogLine(DateTime time, String level, String message) =>
     '[${formatLogTimestamp(time)}][$level] $message';

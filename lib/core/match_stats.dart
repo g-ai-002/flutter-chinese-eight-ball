@@ -1,4 +1,5 @@
 import 'match_record.dart';
+import 'shot_tally.dart';
 
 /// 单一 AI 难度的战绩。
 class DifficultyStats {
@@ -7,6 +8,32 @@ class DifficultyStats {
     required this.matches,
     required this.wins,
   });
+
+  /// 按难度聚合人机对局：已知难度按「入门 → 进阶 → 高手」排列，
+  /// 其他标签追加在后面，保证统计页顺序稳定。
+  static List<DifficultyStats> breakdown(Iterable<MatchRecord> aiRecords) {
+    final byLabel = <String, ({int matches, int wins})>{};
+    for (final record in aiRecords) {
+      final current = byLabel[record.difficultyLabel];
+      byLabel[record.difficultyLabel] = (
+        matches: (current?.matches ?? 0) + 1,
+        wins: (current?.wins ?? 0) + (record.playerWin ? 1 : 0),
+      );
+    }
+    const knownLabels = ['入门', '进阶', '高手'];
+    final labels = [
+      ...knownLabels.where(byLabel.containsKey),
+      ...byLabel.keys.where((label) => !knownLabels.contains(label)),
+    ];
+    return [
+      for (final label in labels)
+        DifficultyStats(
+          label: label,
+          matches: byLabel[label]!.matches,
+          wins: byLabel[label]!.wins,
+        ),
+    ];
+  }
 
   final String label;
   final int matches;
@@ -17,7 +44,8 @@ class DifficultyStats {
 
 /// 本机对局记录的聚合结果，供数据统计页展示。
 ///
-/// 只读取已完成的对局记录，不修改也不上传任何数据。
+/// 只读取已完成的对局记录，不修改也不上传任何数据；输入顺序不限，
+/// 内部按时间从新到旧排序，最近战绩与难度顺序因此保持稳定。
 class MatchStats {
   const MatchStats({
     required this.matches,
@@ -33,65 +61,24 @@ class MatchStats {
   });
 
   factory MatchStats.fromRecords(Iterable<MatchRecord> records) {
-    final all = records.toList();
-    final aiRecords = all.where((record) => record.isVersusAi).toList();
-
-    var shots = 0;
-    var potted = 0;
-    var bestShotPotted = 0;
-    var bestStreak = 0;
-    for (final record in all) {
-      shots += record.shots.length;
-      var streak = 0;
-      int? lastPlayer;
-      for (final shot in record.shots) {
-        final count = shot.potted.where((id) => id != 0).length;
-        potted += count;
-        if (count > bestShotPotted) bestShotPotted = count;
-        if (count > 0 && shot.player == lastPlayer) {
-          streak++;
-        } else if (count > 0) {
-          streak = 1;
-        } else {
-          streak = 0;
-        }
-        lastPlayer = shot.player;
-        if (streak > bestStreak) bestStreak = streak;
-      }
-    }
-
-    final byLabel = <String, ({int matches, int wins})>{};
-    for (final record in aiRecords) {
-      final current = byLabel[record.difficultyLabel];
-      byLabel[record.difficultyLabel] = (
-        matches: (current?.matches ?? 0) + 1,
-        wins: (current?.wins ?? 0) + (record.playerWin ? 1 : 0),
-      );
-    }
-    const knownLabels = ['入门', '进阶', '高手'];
-    final labels = [
-      ...knownLabels.where(byLabel.containsKey),
-      ...byLabel.keys.where((label) => !knownLabels.contains(label)),
+    final all = [...records]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final aiRecords = [
+      for (final record in all)
+        if (record.isVersusAi) record,
     ];
-    final difficulties = [
-      for (final label in labels)
-        DifficultyStats(
-          label: label,
-          matches: byLabel[label]!.matches,
-          wins: byLabel[label]!.wins,
-        ),
-    ];
+    final tally = ShotTally.of(all);
 
     return MatchStats(
       matches: all.length,
       aiMatches: aiRecords.length,
       aiWins: aiRecords.where((record) => record.playerWin).length,
       twoPlayerMatches: all.where((record) => record.isTwoPlayers).length,
-      shots: shots,
-      potted: potted,
-      bestShotPotted: bestShotPotted,
-      bestStreak: bestStreak,
-      difficulties: difficulties,
+      shots: tally.shots,
+      potted: tally.potted,
+      bestShotPotted: tally.bestShotPotted,
+      bestStreak: tally.bestStreak,
+      difficulties: DifficultyStats.breakdown(aiRecords),
       recentAiResults: [
         for (final record in aiRecords.take(5)) record.playerWin,
       ],

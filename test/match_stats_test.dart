@@ -1,44 +1,7 @@
-import 'package:chinese_eight_ball/core/match_record.dart';
 import 'package:chinese_eight_ball/core/match_stats.dart';
-import 'package:chinese_eight_ball/core/table_geometry.dart';
-import 'package:chinese_eight_ball/core/vec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-MatchRecord record({
-  required int index,
-  String mode = 'vsAi',
-  bool win = true,
-  String difficulty = '进阶',
-  List<(int player, List<int> potted)> shots = const [(0, [])],
-}) {
-  final balls = TableGeometry.rackBalls();
-  final cue = balls.firstWhere((ball) => ball.isCue);
-  return MatchRecord(
-    id: 'stats-$index',
-    createdAt: DateTime(2026, 11, 5, 20).add(Duration(minutes: index)),
-    mode: mode,
-    modeLabel: mode == 'vsAi' ? '人机对战' : '双人对战',
-    difficultyLabel: difficulty,
-    humanSide: 0,
-    winner: win ? 0 : 1,
-    winnerName: win ? '玩家' : '电脑',
-    title: win ? '你赢了' : '电脑获胜',
-    playerWin: win,
-    endReason: '清台后打进黑八',
-    shots: [
-      for (final (player, potted) in shots)
-        ReplayShot(
-          player: player,
-          balls: balls,
-          angle: angleOf(cue.position, TableGeometry.footSpot),
-          power: 0.8,
-          calledPocket: null,
-          result: '进球',
-          potted: potted,
-        ),
-    ],
-  );
-}
+import 'support/record_factory.dart';
 
 void main() {
   test('空记录返回零值', () {
@@ -54,7 +17,7 @@ void main() {
 
   test('汇总场次、胜率、杆数与进球', () {
     final stats = MatchStats.fromRecords([
-      record(
+      testRecord(
         index: 0,
         difficulty: '入门',
         shots: [
@@ -62,8 +25,8 @@ void main() {
           (0, [2, 3]),
         ],
       ),
-      record(index: 1, win: false, difficulty: '高手'),
-      record(
+      testRecord(index: 1, win: false, difficulty: '高手'),
+      testRecord(
         index: 2,
         mode: 'twoPlayers',
         shots: [
@@ -87,7 +50,7 @@ void main() {
 
   test('连续进球按球手切换重新计数', () {
     final stats = MatchStats.fromRecords([
-      record(
+      testRecord(
         index: 0,
         shots: [
           (0, [1]),
@@ -105,10 +68,10 @@ void main() {
 
   test('难度分组只统计人机对局', () {
     final stats = MatchStats.fromRecords([
-      record(index: 0, difficulty: '入门'),
-      record(index: 1, win: false, difficulty: '入门'),
-      record(index: 2, difficulty: '高手'),
-      record(index: 3, mode: 'twoPlayers', difficulty: '高手'),
+      testRecord(index: 0, difficulty: '入门'),
+      testRecord(index: 1, win: false, difficulty: '入门'),
+      testRecord(index: 2, difficulty: '高手'),
+      testRecord(index: 3, mode: 'twoPlayers', difficulty: '高手'),
     ]);
 
     expect(stats.difficulties.length, 2);
@@ -123,14 +86,36 @@ void main() {
 
   test('最近战绩最多保留 5 场且保持从新到旧', () {
     final stats = MatchStats.fromRecords([
-      for (var i = 0; i < 7; i++) record(index: i, win: i.isEven),
+      for (var i = 0; i < 7; i++) testRecord(index: i, win: i.isEven),
     ]);
     expect(stats.recentAiResults, [true, false, true, false, true]);
   });
 
+  test('输入乱序时仍按时间取最近的战绩', () {
+    final stats = MatchStats.fromRecords([
+      testRecord(index: 2),
+      testRecord(index: 0),
+      testRecord(index: 5),
+      testRecord(index: 1, win: false),
+      testRecord(index: 4, win: false),
+      testRecord(index: 3, win: false),
+    ]);
+    // 最新 5 场：5(胜) 4(负) 3(负) 2(胜) 1(负)
+    expect(stats.recentAiResults, [true, false, false, true, false]);
+  });
+
+  test('难度未知时追加在已知难度之后', () {
+    final difficulties = DifficultyStats.breakdown([
+      testRecord(index: 0, difficulty: '高手'),
+      testRecord(index: 1, difficulty: '自定义'),
+      testRecord(index: 2, difficulty: '入门'),
+    ]);
+    expect([for (final item in difficulties) item.label], ['入门', '高手', '自定义']);
+  });
+
   test('母球落袋不计入进球数', () {
     final stats = MatchStats.fromRecords([
-      record(
+      testRecord(
         index: 0,
         shots: [
           (0, [0, 1]),
