@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../core/match_stats.dart';
+import '../../core/match_trend.dart';
 import '../../utils/formatters.dart';
 
 /// 近 8 场走势：柱高为单场进球率，圆点标记人机对局胜负。
 class StatsTrend extends StatelessWidget {
-  const StatsTrend({super.key, required this.points});
+  const StatsTrend({super.key, required this.trend});
 
-  final List<TrendPoint> points;
+  final MatchTrend trend;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final recent = points.length <= 3
-        ? points
-        : points.sublist(points.length - 3);
-    final shots = recent.fold(0, (sum, point) => sum + point.shots);
-    final potted = recent.fold(0, (sum, point) => sum + point.potted);
-    final rate = shots == 0 ? 0.0 : potted / shots;
+    final points = trend.points;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 2, 14, 14),
@@ -36,7 +31,7 @@ class StatsTrend extends StatelessWidget {
                 ),
               ),
               Text(
-                '近期 ${formatPercent(rate)}',
+                '近期 ${formatPercent(trend.recentPotRate)}',
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.w600,

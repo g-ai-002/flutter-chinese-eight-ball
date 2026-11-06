@@ -242,6 +242,18 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
+    await tester.tap(find.text('球型'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    final straightTile = tester.widget<ListTile>(
+      find.ancestor(of: find.text('直线球'), matching: find.byType(ListTile)),
+    );
+    expect(straightTile.selected, isTrue);
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    await tester.tap(find.text('直线球'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
     await tester.tap(find.text('摆球'));
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.text('完成摆球'), findsOneWidget);

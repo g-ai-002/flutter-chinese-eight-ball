@@ -95,10 +95,7 @@ class _GamePageState extends State<GamePage> {
         widget.mode == GameMode.twoPlayers || winner == widget.humanSide;
     final title = _controller.matchTitle;
     final record = _controller.finishedRecord;
-    if (record != null && _savedRecord?.id != record.id) {
-      await MatchHistoryService.instance.add(record);
-      _savedRecord = record;
-    }
+    await _saveRecord(record);
     if (!mounted) return;
     await showDialog<void>(
       context: context,
@@ -114,20 +111,7 @@ class _GamePageState extends State<GamePage> {
         },
         onReplay: record == null
             ? null
-            : () async {
-                Navigator.of(dialogContext).pop();
-                await Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => ReplayPage(record: record),
-                  ),
-                );
-                // 回放结束后回到终局球台，重新给出「再来一局」入口。
-                if (!mounted || _controller.phase != MatchPhase.gameOver) {
-                  return;
-                }
-                _dialogOpen = true;
-                await _showGameOver();
-              },
+            : () => _openReplay(dialogContext, record),
         onRestart: () {
           Navigator.of(dialogContext).pop();
           _controller.restart();
@@ -137,6 +121,27 @@ class _GamePageState extends State<GamePage> {
       ),
     );
     _dialogOpen = false;
+  }
+
+  /// 同一场终局只保存一次，回放后重新打开终局弹窗不会重复写入。
+  Future<void> _saveRecord(MatchRecord? record) async {
+    if (record == null || _savedRecord?.id == record.id) return;
+    await MatchHistoryService.instance.add(record);
+    _savedRecord = record;
+  }
+
+  Future<void> _openReplay(
+    BuildContext dialogContext,
+    MatchRecord record,
+  ) async {
+    Navigator.of(dialogContext).pop();
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
+    // 回放结束后回到终局球台，重新给出「再来一局」入口。
+    if (!mounted || _controller.phase != MatchPhase.gameOver) return;
+    _dialogOpen = true;
+    await _showGameOver();
   }
 
   Future<void> _confirmRestart() async {
@@ -327,6 +332,7 @@ class _GamePageState extends State<GamePage> {
                     : _controller.beginBallEdit(),
                 onUndo: _controller.undoPracticeShot,
                 onPreset: _controller.applyPracticePreset,
+                selectedPreset: _controller.practicePreset,
               ),
             ),
         ],

@@ -8,6 +8,7 @@ import '../services/log_service.dart';
 import '../theme/table_skin.dart';
 import '../utils/constants.dart';
 import 'help_page.dart';
+import 'widgets/ai_strength_row.dart';
 import 'widgets/section_card.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -38,7 +39,7 @@ class SettingsPage extends StatelessWidget {
                       onSelected: settings.setDifficulty,
                     ),
                     if (settings.difficulty == AiDifficulty.custom)
-                      _StrengthRow(
+                      AiStrengthRow(
                         value: settings.aiStrength,
                         onChanged: settings.setAiStrength,
                       ),
@@ -226,46 +227,6 @@ class _SwitchRow extends StatelessWidget {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       dense: true,
-    );
-  }
-}
-
-class _StrengthRow extends StatelessWidget {
-  const _StrengthRow({required this.value, required this.onChanged});
-
-  final double value;
-  final ValueChanged<double> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tuning = AiTuning.custom(value);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('AI 强度', style: theme.textTheme.bodyMedium),
-              const Spacer(),
-              Text(
-                '瞄准误差 ${(tuning.aimError * 100).toStringAsFixed(1)}% · '
-                '线路 ${tuning.candidateLimit}',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          Slider(
-            value: value,
-            onChanged: onChanged,
-            divisions: 20,
-            label: '${(value * 100).round()}%',
-          ),
-        ],
-      ),
     );
   }
 }

@@ -38,10 +38,24 @@ void main() {
     expect(controller.balls, hasLength(4));
     expect(controller.phase, MatchPhase.aiming);
     expect(controller.shotCount, 0);
+    expect(controller.practicePreset, PracticePreset.straight);
     expect(controller.log.last, '练习球型：直线球');
 
     controller.applyPracticePreset(PracticePreset.rack);
     expect(controller.balls, hasLength(16));
+    expect(controller.practicePreset, PracticePreset.rack);
+  });
+
+  test('练习模式初始球型为标准开球，摆球后取消标记', () {
+    final controller = MatchController(
+      mode: GameMode.practice,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+
+    expect(controller.practicePreset, PracticePreset.rack);
+    controller.beginBallEdit();
+    expect(controller.practicePreset, isNull);
   });
 
   test('对局模式忽略球型切换', () {

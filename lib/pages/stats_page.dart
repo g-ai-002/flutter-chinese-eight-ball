@@ -77,7 +77,7 @@ class _StatsBody extends StatelessWidget {
         const SizedBox(height: 12),
         SectionCard(
           title: '近期走势',
-          children: [StatsTrend(points: stats.trend)],
+          children: [StatsTrend(trend: stats.trend)],
         ),
         const SizedBox(height: 12),
         SectionCard(

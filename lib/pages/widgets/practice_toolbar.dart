@@ -11,6 +11,7 @@ class PracticeToolbar extends StatelessWidget {
     required this.onToggleEdit,
     required this.onUndo,
     this.onPreset,
+    this.selectedPreset,
   });
 
   final bool editing;
@@ -18,6 +19,7 @@ class PracticeToolbar extends StatelessWidget {
   final VoidCallback onToggleEdit;
   final VoidCallback onUndo;
   final ValueChanged<PracticePreset>? onPreset;
+  final PracticePreset? selectedPreset;
 
   Future<void> _pickPreset(BuildContext context) async {
     final preset = await showModalBottomSheet<PracticePreset>(
@@ -30,8 +32,12 @@ class PracticeToolbar extends StatelessWidget {
             for (final item in PracticePreset.values)
               ListTile(
                 dense: true,
+                selected: item == selectedPreset,
                 leading: const Icon(Icons.adjust, size: 20),
                 title: Text(item.label),
+                trailing: item == selectedPreset
+                    ? const Icon(Icons.check, size: 20)
+                    : null,
                 onTap: () => Navigator.of(sheetContext).pop(item),
               ),
           ],
