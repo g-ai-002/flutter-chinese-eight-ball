@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/match_trend.dart';
 import '../../utils/formatters.dart';
+import 'stats_bars.dart';
 
 /// 近 8 场走势：柱高为单场进球率，圆点标记人机对局胜负。
 class StatsTrend extends StatelessWidget {
@@ -40,15 +41,17 @@ class StatsTrend extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 96,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (final point in points)
-                  Expanded(child: _TrendBar(point: point)),
-              ],
-            ),
+          StatsBars(
+            bars: [
+              for (final point in points)
+                StatsBar(
+                  heightFactor: point.potRate,
+                  marker: _markerColor(point, colors),
+                  topLabel: '${(point.potRate * 100).round()}',
+                  bottomLabel:
+                      '${point.createdAt.month}/${point.createdAt.day}',
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
@@ -61,64 +64,10 @@ class StatsTrend extends StatelessWidget {
       ),
     );
   }
-}
 
-class _TrendBar extends StatelessWidget {
-  const _TrendBar({required this.point});
-
-  final TrendPoint point;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+  Color _markerColor(TrendPoint point, ColorScheme colors) {
     final win = point.win;
-    final marker = win == null
-        ? colors.outlineVariant
-        : (win ? colors.primary : colors.error);
-    final rate = point.potRate.clamp(0.0, 1.0).toDouble();
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(color: marker, shape: BoxShape.circle),
-        ),
-        const SizedBox(height: 4),
-        Expanded(
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: FractionallySizedBox(
-              heightFactor: rate < 0.06 ? 0.06 : rate,
-              widthFactor: 0.52,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.35),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${(point.potRate * 100).round()}',
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontSize: 8.5,
-            color: colors.onSurfaceVariant,
-          ),
-        ),
-        Text(
-          '${point.createdAt.month}/${point.createdAt.day}',
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontSize: 8,
-            color: colors.outline,
-          ),
-        ),
-      ],
-    );
+    if (win == null) return colors.outlineVariant;
+    return win ? colors.primary : colors.error;
   }
 }

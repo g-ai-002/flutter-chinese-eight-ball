@@ -66,43 +66,32 @@ class _StatsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    Widget card(String title, Widget child) =>
+        SectionCard(title: title, children: [child]);
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        SectionCard(
-          title: '总览',
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
-              child: StatsSummaryGrid(stats: stats),
-            ),
-          ],
+        card(
+          '总览',
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+            child: StatsSummaryGrid(stats: stats),
+          ),
         ),
         const SizedBox(height: 12),
-        SectionCard(
-          title: '近期走势',
-          children: [StatsTrend(trend: stats.trend)],
-        ),
+        card('近期走势', StatsTrend(trend: stats.trend)),
         const SizedBox(height: 12),
-        SectionCard(
-          title: '近 7 天',
-          children: [StatsDaily(trend: stats.daily)],
-        ),
+        card('近 7 天', StatsDaily(trend: stats.daily)),
         const SizedBox(height: 12),
-        SectionCard(
-          title: '人机难度',
-          children: [StatsDifficultyList(difficulties: stats.difficulties)],
-        ),
+        card('人机难度', StatsDifficultyList(difficulties: stats.difficulties)),
         const SizedBox(height: 12),
-        SectionCard(
-          title: '最近战绩',
-          children: [
-            StatsRecentForm(
-              results: stats.recentAiResults,
-              wins: stats.aiWins,
-              losses: stats.aiLosses,
-            ),
-          ],
+        card(
+          '最近战绩',
+          StatsRecentForm(
+            results: stats.recentAiResults,
+            wins: stats.aiWins,
+            losses: stats.aiLosses,
+          ),
         ),
         const SizedBox(height: 18),
         Text(
