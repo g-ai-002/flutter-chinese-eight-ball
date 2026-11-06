@@ -13,6 +13,7 @@ void main() {
       final balls = preset.layout();
       expect(balls.where((ball) => ball.isCue), hasLength(1));
       expect(balls.length, greaterThanOrEqualTo(3));
+      expect(balls.map((ball) => ball.id).toSet(), hasLength(balls.length));
       for (final ball in balls) {
         expect(
           TableGeometry.isValidBallPlacement(
