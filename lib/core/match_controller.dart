@@ -50,6 +50,7 @@ class MatchController extends ChangeNotifier {
          humanSide: humanSide,
        ),
        _simulation = ShotSimulation(balls: TableGeometry.rackBalls()) {
+    if (isPractice) _practice.reset(preset: PracticePreset.rack);
     aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
     _pushLog(isPractice ? '自由练习：拖动球台瞄准，可随时摆球或重打本杆' : '开球：${playerName(0)}先手');
     if (autoPlayAi && _isAiTurn) {
@@ -103,6 +104,7 @@ class MatchController extends ChangeNotifier {
   bool get isHumanTurn => !_isAiTurn;
   bool get isPractice => mode == GameMode.practice;
   bool get isEditingBalls => _practice.editing;
+  PracticePreset? get practicePreset => _practice.preset;
   int get shotCount => isPractice ? _practice.shots : _rules.shotNumber;
   bool get canUndoPracticeShot =>
       isPractice && _practice.canUndo && _phase == MatchPhase.aiming;
@@ -253,12 +255,8 @@ class MatchController extends ChangeNotifier {
   /// 练习模式：切换球型模板，清空杆数与上一杆快照。
   void applyPracticePreset(PracticePreset preset) {
     if (!isPractice || _phase != MatchPhase.aiming) return;
-    _simulation = ShotSimulation(balls: preset.layout());
-    _practice.reset();
-    pendingEffects.clear();
-    _effectCursor = 0;
-    _calledPocket = null;
-    aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
+    _loadBalls(preset.layout());
+    _practice.reset(preset: preset);
     _pushLog('练习球型：${preset.label}');
     notifyListeners();
   }
@@ -268,11 +266,8 @@ class MatchController extends ChangeNotifier {
     if (!canUndoPracticeShot) return;
     final restore = _practice.restoreShot();
     if (restore == null) return;
-    _simulation = ShotSimulation(balls: restore);
-    pendingEffects.clear();
-    _effectCursor = 0;
+    _loadBalls(restore);
     _phase = MatchPhase.aiming;
-    aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
     _pushLog('已恢复上一杆的球局');
     notifyListeners();
   }
@@ -404,17 +399,22 @@ class MatchController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _startRack() {
-    _simulation = ShotSimulation(balls: TableGeometry.rackBalls())
-      ..placeCue(TableGeometry.headSpot);
+  /// 用给定球局替换台面，并同步清空特效、指袋与瞄准角。
+  void _loadBalls(Iterable<BallState> balls, {bool placeCueAtHead = false}) {
+    _simulation = ShotSimulation(balls: balls);
+    if (placeCueAtHead) _simulation.placeCue(TableGeometry.headSpot);
     pendingEffects.clear();
     _effectCursor = 0;
+    _calledPocket = null;
+    aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
+  }
+
+  void _startRack() {
+    _loadBalls(TableGeometry.rackBalls(), placeCueAtHead: true);
     _rules.isBreak = true;
     _rules.ballInHand = false;
-    _calledPocket = null;
-    _practice.endEdit();
+    _practice.reset(preset: isPractice ? PracticePreset.rack : null);
     _phase = MatchPhase.aiming;
-    aimAngle = angleOf(cueBall.position, TableGeometry.footSpot);
     _pushLog('重新摆球');
   }
 
@@ -545,7 +545,6 @@ class MatchController extends ChangeNotifier {
     _generation++;
     _rules = MatchRules();
     _calledPocket = null;
-    _practice.reset();
     _recorder.clear();
     _finishedRecord = null;
     _startRack();

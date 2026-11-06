@@ -25,6 +25,9 @@ class ReplayShot {
   final String result;
   final List<int> potted;
 
+  /// 本杆打进的目标球数（不含母球）。
+  int get pottedTargets => potted.where((id) => id != 0).length;
+
   Map<String, Object?> toJson() => {
     'p': player,
     'a': _round(angle, 4),

@@ -22,7 +22,7 @@ class ShotTally {
       var streak = 0;
       int? lastPlayer;
       for (final shot in record.shots) {
-        final count = shot.potted.where((id) => id != 0).length;
+        final count = shot.pottedTargets;
         potted += count;
         if (count > bestShotPotted) bestShotPotted = count;
         if (count > 0 && shot.player == lastPlayer) {

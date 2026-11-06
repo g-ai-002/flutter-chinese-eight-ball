@@ -29,4 +29,29 @@ void main() {
     expect(tuning.label, '自定义');
     expect(tuning.aimError, lessThan(AiTuning.normal.aimError));
   });
+
+  test('强度插值与端点一致且单调收敛误差', () {
+    for (final strength in [0.0, 1.0]) {
+      final tuning = AiTuning.custom(strength);
+      final expected = AiTuning.lerp(AiTuning.easy, AiTuning.hard, strength);
+      expect(tuning.candidateLimit, expected.candidateLimit);
+      expect(tuning.aimError, expected.aimError);
+      expect(tuning.powerError, expected.powerError);
+    }
+
+    var lastLimit = 0;
+    var lastError = double.infinity;
+    for (var i = 0; i <= 10; i++) {
+      final tuning = AiTuning.custom(i / 10);
+      expect(tuning.candidateLimit, greaterThanOrEqualTo(lastLimit));
+      expect(tuning.aimError, lessThanOrEqualTo(lastError));
+      lastLimit = tuning.candidateLimit;
+      lastError = tuning.aimError;
+    }
+  });
+
+  test('调参摘要展示瞄准误差与候选线路', () {
+    expect(AiTuning.easy.accuracyLabel, '瞄准误差 5.0% · 线路 4');
+    expect(AiTuning.custom(0.5).accuracyLabel, '瞄准误差 2.8% · 线路 9');
+  });
 }

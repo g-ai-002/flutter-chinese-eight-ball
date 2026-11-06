@@ -1,4 +1,5 @@
 import 'package:chinese_eight_ball/core/ball.dart';
+import 'package:chinese_eight_ball/core/practice_preset.dart';
 import 'package:chinese_eight_ball/core/practice_session.dart';
 import 'package:chinese_eight_ball/core/table_geometry.dart';
 import 'package:chinese_eight_ball/core/vec.dart';
@@ -44,7 +45,7 @@ void main() {
   });
 
   test('重置清空杆数、摆球状态与快照', () {
-    final session = PracticeSession();
+    final session = PracticeSession(preset: PracticePreset.rack);
     session
       ..beginEdit()
       ..capture([ball(0, const Vec2(0.3, 0.3))])
@@ -54,6 +55,21 @@ void main() {
     expect(session.editing, isFalse);
     expect(session.shots, 0);
     expect(session.canUndo, isFalse);
+    expect(session.preset, isNull);
     expect(session.restoreShot(), isNull);
+  });
+
+  test('手动摆球会清除当前球型，切换模板后重新标记', () {
+    final session = PracticeSession(preset: PracticePreset.rack);
+    expect(session.preset, PracticePreset.rack);
+
+    session.beginEdit();
+    expect(session.preset, isNull);
+
+    session
+      ..endEdit()
+      ..reset(preset: PracticePreset.cut);
+    expect(session.preset, PracticePreset.cut);
+    expect(session.editing, isFalse);
   });
 }

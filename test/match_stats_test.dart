@@ -142,12 +142,13 @@ void main() {
         ),
     ]);
 
-    expect(stats.trend, hasLength(8));
-    expect(stats.trend.first.createdAt, DateTime(2026, 11, 5, 20, 2));
-    expect(stats.trend.last.createdAt, DateTime(2026, 11, 5, 20, 9));
-    expect(stats.trend[0].win, isTrue);
-    expect(stats.trend.last.win, isNull);
-    expect(stats.trend[1].potted, 2);
-    expect(stats.trend[1].potRate, closeTo(1, 1e-9));
+    final points = stats.trend.points;
+    expect(points, hasLength(8));
+    expect(points.first.createdAt, DateTime(2026, 11, 5, 20, 2));
+    expect(points.last.createdAt, DateTime(2026, 11, 5, 20, 9));
+    expect(points[0].win, isTrue);
+    expect(points.last.win, isNull);
+    expect(points[1].potted, 2);
+    expect(points[1].potRate, closeTo(1, 1e-9));
   });
 }

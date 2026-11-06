@@ -35,13 +35,19 @@ class AiTuning {
   static const AiTuning normal = AiTuning('进阶', 8, 0.016, 0.07);
   static const AiTuning hard = AiTuning('高手', 14, 0.005, 0.025);
 
-  factory AiTuning.custom(double strength) {
-    final t = strength.clamp(0.0, 1.0);
+  /// 自定义难度：以入门与高手为两端，按 0~1 强度线性插值。
+  factory AiTuning.custom(double strength) =>
+      AiTuning.lerp(easy, hard, strength);
+
+  /// 在 [from] 与 [to] 之间插值，强度越界时自动收敛到 0~1。
+  static AiTuning lerp(AiTuning from, AiTuning to, double strength) {
+    final t = strength.clamp(0.0, 1.0).toDouble();
     return AiTuning(
       '自定义',
-      (4 + 10 * t).round(),
-      0.05 - 0.045 * t,
-      0.16 - 0.135 * t,
+      (from.candidateLimit + (to.candidateLimit - from.candidateLimit) * t)
+          .round(),
+      _mix(from.aimError, to.aimError, t),
+      _mix(from.powerError, to.powerError, t),
     );
   }
 
@@ -50,10 +56,17 @@ class AiTuning {
       ? AiTuning.custom(strength)
       : difficulty.tuning;
 
+  static double _mix(double from, double to, double t) =>
+      from + (to - from) * t;
+
   final String label;
   final int candidateLimit;
   final double aimError;
   final double powerError;
+
+  /// 设置页展示的调参摘要，避免界面自行拼装百分比与线路数。
+  String get accuracyLabel =>
+      '瞄准误差 ${(aimError * 100).toStringAsFixed(1)}% · 线路 $candidateLimit';
 }
 
 /// AI 选定的一杆：击球角、力度、评分与用途，附带选中的目标球与袋口。
