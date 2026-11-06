@@ -26,28 +26,29 @@
 
 ## 下载
 
-v0.4.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.4.0)
+v0.4.1（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.4.1)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-chinese-eight-ball-0.4.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.4.0-windows-x86_64.zip` |
-| Web | `flutter-chinese-eight-ball-0.4.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-chinese-eight-ball-0.4.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.4.1-windows-x86_64.zip` |
+| Web | `flutter-chinese-eight-ball-0.4.1-web.zip`（解压后起静态服务器） |
 
-Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.4.0/` 与 `debug/`），可直接部署为静态站点。
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.4.1/` 与 `debug/`），可直接部署为静态站点。
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.4.1 | 重构 AI 决策与防守评分、统计聚合与统计页组件，修复最近战绩的顺序依赖 |
 | 0.4.0 | 新增防守型 AI、走位评分细化与对局数据统计，首页与最近对局可进入统计页 |
 | 0.3.1 | 重构回放状态机、记录编解码与回放页组件，实时对局与回放共用球台渲染层 |
 | 0.3.0 | 新增最近对局记录与逐杆回放，播放 / 暂停、跳杆与进度拖拽，记录只存本机 |
 | 0.2.1 | 重构练习状态、命中判定与对局页组件，修复宽屏指袋前可点击击球的问题 |
-| 0.2.0 | 新增黑八指袋与自由练习模式，支持任意摆球与重打上一杆 |
 
 更早版本：
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.2.0 | 新增黑八指袋与自由练习模式，支持任意摆球与重打上一杆 |
 | 0.1.1 | 拆分球台渲染、规则裁定、AI 候选与对局页组件，修复 AI 重复出杆 |
 | 0.1.0 | 首个可玩版本：物理、规则、三档 AI、双人同屏与三端构建发布 |
 
