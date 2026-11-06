@@ -66,22 +66,9 @@ const List<TableSkin> kTableSkins = [
   ),
 ];
 
-const TableSkin kDefaultTableSkin = TableSkin(
-  id: 'emerald',
-  name: '翡翠台呢',
-  cloth: Color(0xFF0F5132),
-  clothLight: Color(0xFF1B6B45),
-  clothDark: Color(0xFF093523),
-  rail: Color(0xFF5A3A22),
-  railEdge: Color(0xFF3A2413),
-  marking: Color(0x33F2E8D0),
-  diamond: Color(0xFFE8D6A8),
-  pocket: Color(0xFF14110D),
-);
-
 TableSkin tableSkinOf(String? id) => kTableSkins.firstWhere(
   (skin) => skin.id == id,
-  orElse: () => kDefaultTableSkin,
+  orElse: () => kTableSkins.first,
 );
 
 /// 球色按中式黑八标准配色，9-15 号沿用对应全色球的颜色。

@@ -51,19 +51,11 @@ class StatsTrend extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              _LegendDot(color: colors.primary, label: '人机胜'),
-              const SizedBox(width: 10),
-              _LegendDot(color: colors.error, label: '人机负'),
-              const Spacer(),
-              Text(
-                '旧 → 新',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-            ],
+          Text(
+            '圆点：人机胜 / 负 · 旧 → 新',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -124,35 +116,6 @@ class _TrendBar extends StatelessWidget {
           style: theme.textTheme.labelSmall?.copyWith(
             fontSize: 8,
             color: colors.outline,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LegendDot extends StatelessWidget {
-  const _LegendDot({required this.color, required this.label});
-
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
