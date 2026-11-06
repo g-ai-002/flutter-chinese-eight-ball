@@ -32,6 +32,18 @@ void main() {
     expect(storage.tableSkinId, 'midnight');
   });
 
+  test('自定义 AI 强度默认中等并可收敛到边界', () async {
+    final storage = await StorageService.instance;
+    expect(storage.aiStrength, 0.5);
+
+    await storage.setAiStrength(1.4);
+    expect(storage.aiStrength, 1.0);
+
+    await storage.setDifficulty(AiDifficulty.custom);
+    expect(storage.difficulty, AiDifficulty.custom);
+    expect(storage.aiStrength, 1.0);
+  });
+
   test('未知难度与配色回退到默认值', () async {
     SharedPreferences.setMockInitialValues({
       'difficulty': 'unknown',

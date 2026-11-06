@@ -14,6 +14,7 @@ import 'package:chinese_eight_ball/pages/stats_page.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/match_history_service.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
+import 'package:chinese_eight_ball/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -110,7 +111,7 @@ void main() {
     expect(find.text('最近对局'), findsOneWidget);
     expect(find.text('数据统计'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.4.1'), findsOneWidget);
+    expect(find.textContaining('v${AppConstants.version}'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
@@ -130,6 +131,18 @@ void main() {
     expect(find.text('翡翠台呢'), findsOneWidget);
     expect(find.text('午夜蓝'), findsOneWidget);
     expect(find.text('酒红呢'), findsOneWidget);
+  });
+
+  testWidgets('设置页可切换到自定义 AI 强度', (tester) async {
+    final settings = await pumpPage(tester, const SettingsPage());
+
+    await tester.tap(find.text('自定义'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(settings.difficulty, AiDifficulty.custom);
+    expect(find.text('AI 强度'), findsOneWidget);
+    expect(find.textContaining('瞄准误差'), findsOneWidget);
   });
 
   testWidgets('玩法规则页列出核心规则', (tester) async {
@@ -216,8 +229,18 @@ void main() {
 
     expect(find.text('自由练习'), findsWidgets);
     expect(find.text('摆球'), findsOneWidget);
+    expect(find.text('球型'), findsOneWidget);
     expect(find.text('重打'), findsOneWidget);
     expect(find.text('击 球'), findsOneWidget);
+
+    await tester.tap(find.text('球型'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('选择练习球型'), findsOneWidget);
+    expect(find.text('直线球'), findsOneWidget);
+    await tester.tap(find.text('直线球'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     await tester.tap(find.text('摆球'));
     await tester.pump(const Duration(milliseconds: 50));
@@ -259,6 +282,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('总览'), findsOneWidget);
+    expect(find.text('近期走势'), findsOneWidget);
+    expect(find.text('近 1 场 · 柱高为进球率'), findsOneWidget);
     expect(find.text('总场次'), findsOneWidget);
     expect(find.text('双人场次'), findsOneWidget);
     expect(find.text('场均杆数'), findsOneWidget);
@@ -275,6 +300,8 @@ void main() {
     expect(find.text('人机难度'), findsOneWidget);
     expect(find.text('高手'), findsOneWidget);
     expect(find.textContaining('1 / 1 胜'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -260));
+    await tester.pump();
     expect(find.text('1 胜 0 负'), findsOneWidget);
     expect(find.text('胜'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);

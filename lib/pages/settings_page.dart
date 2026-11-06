@@ -37,6 +37,11 @@ class SettingsPage extends StatelessWidget {
                       labelOf: (value) => value.label,
                       onSelected: settings.setDifficulty,
                     ),
+                    if (settings.difficulty == AiDifficulty.custom)
+                      _StrengthRow(
+                        value: settings.aiStrength,
+                        onChanged: settings.setAiStrength,
+                      ),
                     _ChipRow<int>(
                       label: '开球先后',
                       values: const [0, 1],
@@ -221,6 +226,46 @@ class _SwitchRow extends StatelessWidget {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       dense: true,
+    );
+  }
+}
+
+class _StrengthRow extends StatelessWidget {
+  const _StrengthRow({required this.value, required this.onChanged});
+
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tuning = AiTuning.custom(value);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('AI 强度', style: theme.textTheme.bodyMedium),
+              const Spacer(),
+              Text(
+                '瞄准误差 ${(tuning.aimError * 100).toStringAsFixed(1)}% · '
+                '线路 ${tuning.candidateLimit}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: value,
+            onChanged: onChanged,
+            divisions: 20,
+            label: '${(value * 100).round()}%',
+          ),
+        ],
+      ),
     );
   }
 }

@@ -127,4 +127,27 @@ void main() {
     expect(stats.bestShotPotted, 1);
     expect(stats.potRate, closeTo(0.5, 1e-9));
   });
+
+  test('走势最多 8 场并按时间从旧到新', () {
+    final stats = MatchStats.fromRecords([
+      for (var i = 0; i < 10; i++)
+        testRecord(
+          index: i,
+          mode: i == 9 ? 'twoPlayers' : 'vsAi',
+          win: i.isEven,
+          shots: [
+            (0, i == 3 ? [1, 2] : [1]),
+            (1, const []),
+          ],
+        ),
+    ]);
+
+    expect(stats.trend, hasLength(8));
+    expect(stats.trend.first.createdAt, DateTime(2026, 11, 5, 20, 2));
+    expect(stats.trend.last.createdAt, DateTime(2026, 11, 5, 20, 9));
+    expect(stats.trend[0].win, isTrue);
+    expect(stats.trend.last.win, isNull);
+    expect(stats.trend[1].potted, 2);
+    expect(stats.trend[1].potRate, closeTo(1, 1e-9));
+  });
 }

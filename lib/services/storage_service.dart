@@ -67,6 +67,14 @@ class StorageService {
   Future<void> setDifficulty(AiDifficulty value) =>
       _write((p) => p.setString(AppConstants.prefKeyDifficulty, value.name));
 
+  /// 自定义 AI 强度，0~1，默认中等。
+  double get aiStrength => (_p.getDouble(AppConstants.prefKeyAiStrength) ?? 0.5)
+      .clamp(0.0, 1.0)
+      .toDouble();
+
+  Future<void> setAiStrength(double value) =>
+      _write((p) => p.setDouble(AppConstants.prefKeyAiStrength, value));
+
   /// 人类开球方：0 先手，1 后手。
   int get humanSide => _p.getInt(AppConstants.prefKeyHumanSide) ?? 0;
   Future<void> setHumanSide(int value) =>

@@ -20,7 +20,7 @@ class DifficultyStats {
         wins: (current?.wins ?? 0) + (record.playerWin ? 1 : 0),
       );
     }
-    const knownLabels = ['入门', '进阶', '高手'];
+    const knownLabels = ['入门', '进阶', '高手', '自定义'];
     final labels = [
       ...knownLabels.where(byLabel.containsKey),
       ...byLabel.keys.where((label) => !knownLabels.contains(label)),
@@ -42,6 +42,25 @@ class DifficultyStats {
   double get winRate => matches == 0 ? 0 : wins / matches;
 }
 
+/// 单场走势：进球率用于柱高，人机对局额外记录胜负。
+class TrendPoint {
+  const TrendPoint({
+    required this.createdAt,
+    required this.shots,
+    required this.potted,
+    required this.win,
+  });
+
+  final DateTime createdAt;
+  final int shots;
+  final int potted;
+
+  /// 仅人机对局有胜负，双人对局为 null。
+  final bool? win;
+
+  double get potRate => shots == 0 ? 0 : potted / shots;
+}
+
 /// 本机对局记录的聚合结果，供数据统计页展示。
 ///
 /// 只读取已完成的对局记录，不修改也不上传任何数据；输入顺序不限，
@@ -58,6 +77,7 @@ class MatchStats {
     required this.bestStreak,
     required this.difficulties,
     required this.recentAiResults,
+    required this.trend,
   });
 
   factory MatchStats.fromRecords(Iterable<MatchRecord> records) {
@@ -82,6 +102,18 @@ class MatchStats {
       recentAiResults: [
         for (final record in aiRecords.take(5)) record.playerWin,
       ],
+      trend: [
+        for (final record in all.take(8).toList().reversed)
+          TrendPoint(
+            createdAt: record.createdAt,
+            shots: record.shots.length,
+            potted: record.shots.fold(
+              0,
+              (sum, shot) => sum + shot.potted.where((id) => id != 0).length,
+            ),
+            win: record.isVersusAi ? record.playerWin : null,
+          ),
+      ],
     );
   }
 
@@ -103,6 +135,9 @@ class MatchStats {
 
   /// 最近 5 场人机对局的胜负，按时间从新到旧。
   final List<bool> recentAiResults;
+
+  /// 最近 8 场对局走势，按时间从旧到新，供图表绘制。
+  final List<TrendPoint> trend;
 
   bool get isEmpty => matches == 0;
 

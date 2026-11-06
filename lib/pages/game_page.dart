@@ -27,11 +27,13 @@ class GamePage extends StatefulWidget {
     super.key,
     required this.mode,
     required this.difficulty,
+    this.aiStrength = 0.5,
     required this.humanSide,
   });
 
   final GameMode mode;
   final AiDifficulty difficulty;
+  final double aiStrength;
   final int humanSide;
 
   @override
@@ -53,6 +55,7 @@ class _GamePageState extends State<GamePage> {
     _controller = MatchController(
       mode: widget.mode,
       difficulty: widget.difficulty,
+      aiStrength: widget.aiStrength,
       humanSide: widget.humanSide,
     )..addListener(_onControllerChanged);
   }
@@ -284,7 +287,8 @@ class _GamePageState extends State<GamePage> {
   }
 
   String get _subtitle => switch (widget.mode) {
-    GameMode.vsAi => '中式黑八 · ${widget.difficulty.label}',
+    GameMode.vsAi =>
+      '中式黑八 · ${AiTuning.of(widget.difficulty, widget.aiStrength).label}',
     GameMode.twoPlayers => '中式黑八 · 同屏对局',
     GameMode.practice => '中式黑八 · 自由练习',
   };
@@ -322,6 +326,7 @@ class _GamePageState extends State<GamePage> {
                     ? _controller.endBallEdit()
                     : _controller.beginBallEdit(),
                 onUndo: _controller.undoPracticeShot,
+                onPreset: _controller.applyPracticePreset,
               ),
             ),
         ],

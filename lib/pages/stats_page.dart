@@ -7,6 +7,7 @@ import 'widgets/stats_difficulty_list.dart';
 import 'widgets/stats_empty.dart';
 import 'widgets/stats_recent_form.dart';
 import 'widgets/stats_summary_grid.dart';
+import 'widgets/stats_trend.dart';
 
 /// 数据统计：聚合本机最近对局，展示胜率、杆数、进球与难度表现。
 class StatsPage extends StatefulWidget {
@@ -72,6 +73,11 @@ class _StatsBody extends StatelessWidget {
               child: StatsSummaryGrid(stats: stats),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        SectionCard(
+          title: '近期走势',
+          children: [StatsTrend(points: stats.trend)],
         ),
         const SizedBox(height: 12),
         SectionCard(

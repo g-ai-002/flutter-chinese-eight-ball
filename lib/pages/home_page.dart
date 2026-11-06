@@ -107,6 +107,7 @@ class HomePage extends StatelessWidget {
         builder: (_) => GamePage(
           mode: mode,
           difficulty: settings.difficulty,
+          aiStrength: settings.aiStrength,
           humanSide: mode == GameMode.vsAi ? settings.humanSide : 0,
         ),
       ),
@@ -124,7 +125,7 @@ class HomePage extends StatelessWidget {
         accent: colors.primary,
       ),
       title: GameMode.vsAi.label,
-      subtitle: '三档 AI · 可先手或后手',
+      subtitle: '四档 AI · 可自定义强度',
       onTap: () => _startGame(context, settings, GameMode.vsAi),
     ),
     EntryTile(

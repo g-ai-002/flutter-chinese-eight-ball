@@ -9,11 +9,12 @@ class AppConstants {
 
   static const String appName = '中式黑八';
   static const String appNameEn = 'CHINESE EIGHT BALL';
-  static const String version = '0.4.1';
+  static const String version = '0.5.0';
   static const String appDirName = 'FlutterChineseEightBall';
 
   static const String prefKeyDarkMode = 'dark_mode';
   static const String prefKeyDifficulty = 'difficulty';
+  static const String prefKeyAiStrength = 'ai_strength';
   static const String prefKeyHumanSide = 'human_side';
   static const String prefKeyShowAimGuide = 'show_aim_guide';
   static const String prefKeyTableSkin = 'table_skin';

@@ -23,7 +23,7 @@ void main() {
       balls: balls,
       group: PlayerGroup.solids,
       onEight: false,
-      difficulty: AiDifficulty.hard,
+      tuning: AiDifficulty.hard.tuning,
     );
 
     expect(shot.targetBallId, 1);
@@ -63,7 +63,7 @@ void main() {
       balls: balls,
       group: PlayerGroup.solids,
       onEight: true,
-      difficulty: AiDifficulty.hard,
+      tuning: AiDifficulty.hard.tuning,
     );
     expect(shot.targetBallId, 8);
     expect(shot.pocketIndex, isNotNull);
@@ -76,7 +76,7 @@ void main() {
       balls: balls,
       group: PlayerGroup.solids,
       onEight: false,
-      difficulty: AiDifficulty.easy,
+      tuning: AiDifficulty.easy.tuning,
     );
     expect(shot.power, greaterThan(0));
     expect(shot.angle.isFinite, isTrue);
@@ -90,7 +90,7 @@ void main() {
         balls: balls,
         group: PlayerGroup.solids,
         onEight: false,
-        difficulty: difficulty,
+        tuning: difficulty.tuning,
       );
       return (shot.angle - -math.pi / 2).abs();
     }
@@ -117,7 +117,7 @@ void main() {
       balls: balls,
       group: PlayerGroup.solids,
       onEight: false,
-      difficulty: AiDifficulty.hard,
+      tuning: AiDifficulty.hard.tuning,
     );
 
     expect(shot.isSafety, isTrue);
@@ -138,7 +138,7 @@ void main() {
       balls: balls,
       group: PlayerGroup.solids,
       onEight: false,
-      difficulty: AiDifficulty.hard,
+      tuning: AiDifficulty.hard.tuning,
     );
 
     expect(shot.isSafety, isFalse);
@@ -152,7 +152,7 @@ void main() {
       balls: balls,
       group: PlayerGroup.solids,
       onEight: false,
-      difficulty: AiDifficulty.hard,
+      tuning: AiDifficulty.hard.tuning,
     );
 
     final simulation = ShotSimulation(balls: balls);

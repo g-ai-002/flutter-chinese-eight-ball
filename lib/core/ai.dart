@@ -42,7 +42,7 @@ class EightBallAi {
     required List<BallState> balls,
     required PlayerGroup? group,
     required bool onEight,
-    AiDifficulty difficulty = AiDifficulty.normal,
+    AiTuning tuning = AiTuning.normal,
   }) {
     final cue = balls.firstWhere((ball) => ball.isCue);
     final targets = AiTable.legalTargets(balls, group, onEight);
@@ -57,7 +57,7 @@ class EightBallAi {
 
     final candidates = _attackCandidates(cue.position, targets, balls)
       ..sort((a, b) => b.geometryScore.compareTo(a.geometryScore));
-    final limited = candidates.take(difficulty.candidateLimit);
+    final limited = candidates.take(tuning.candidateLimit);
 
     final attack = _bestEvaluatedShot(
       candidates: limited,
@@ -78,11 +78,8 @@ class EightBallAi {
     }
     chosen ??= _safety.fallback(balls: balls, targets: targets);
     return AiShot(
-      angle: _applyError(chosen.angle, difficulty.aimError),
-      power: (chosen.power + _symmetric(difficulty.powerError)).clamp(
-        0.15,
-        1.0,
-      ),
+      angle: _applyError(chosen.angle, tuning.aimError),
+      power: (chosen.power + _symmetric(tuning.powerError)).clamp(0.15, 1.0),
       score: chosen.score,
       targetBallId: chosen.targetBallId,
       pocketIndex: chosen.pocketIndex,

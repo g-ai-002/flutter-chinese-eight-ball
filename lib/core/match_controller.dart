@@ -9,6 +9,7 @@ import 'ball.dart';
 import 'match_record.dart';
 import 'match_recorder.dart';
 import 'physics.dart';
+import 'practice_preset.dart';
 import 'practice_session.dart';
 import 'rules.dart';
 import 'table_geometry.dart';
@@ -34,6 +35,7 @@ class MatchController extends ChangeNotifier {
   MatchController({
     required this.mode,
     this.difficulty = AiDifficulty.normal,
+    this.aiStrength = 0.5,
     this.humanSide = 0,
     this.aiThinkDelay = const Duration(milliseconds: 520),
     this.autoPlayAi = true,
@@ -44,7 +46,7 @@ class MatchController extends ChangeNotifier {
        _recorder = MatchRecorder(
          mode: mode.name,
          modeLabel: mode.label,
-         difficultyLabel: difficulty.label,
+         difficultyLabel: AiTuning.of(difficulty, aiStrength).label,
          humanSide: humanSide,
        ),
        _simulation = ShotSimulation(balls: TableGeometry.rackBalls()) {
@@ -60,6 +62,9 @@ class MatchController extends ChangeNotifier {
   final GameMode mode;
   final int humanSide;
   final AiDifficulty difficulty;
+
+  /// 自定义 AI 强度（0~1），仅在难度为自定义时生效。
+  final double aiStrength;
   final Duration aiThinkDelay;
 
   /// 测试时置为 false，避免异步 AI 影响断言。
@@ -243,6 +248,19 @@ class MatchController extends ChangeNotifier {
       return true;
     }
     return false;
+  }
+
+  /// 练习模式：切换球型模板，清空杆数与上一杆快照。
+  void applyPracticePreset(PracticePreset preset) {
+    if (!isPractice || _phase != MatchPhase.aiming) return;
+    _simulation = ShotSimulation(balls: preset.layout());
+    _practice.reset();
+    pendingEffects.clear();
+    _effectCursor = 0;
+    _calledPocket = null;
+    aimAngle = angleOf(cuePosition, TableGeometry.footSpot);
+    _pushLog('练习球型：${preset.label}');
+    notifyListeners();
   }
 
   /// 练习模式：把球局恢复到上一杆出杆前，便于重复练习同一杆。
@@ -483,7 +501,7 @@ class MatchController extends ChangeNotifier {
         balls: balls,
         group: _rules.currentGroup,
         onEight: onEightFor(currentPlayer),
-        difficulty: difficulty,
+        tuning: AiTuning.of(difficulty, aiStrength),
       );
       if (shot.isSafety) {
         _pushLog('${playerName(currentPlayer)}选择防守');
