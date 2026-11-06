@@ -48,6 +48,35 @@ MatchRecord sampleReplayRecord() {
   );
 }
 
+MatchRecord sampleAiRecord() {
+  final balls = TableGeometry.rackBalls();
+  final cue = balls.firstWhere((ball) => ball.isCue);
+  return MatchRecord(
+    id: 'replay-ai',
+    createdAt: DateTime(2026, 11, 6, 21, 10),
+    mode: 'vsAi',
+    modeLabel: '人机对战',
+    difficultyLabel: '高手',
+    humanSide: 0,
+    winner: 0,
+    winnerName: '玩家',
+    title: '你赢了',
+    playerWin: true,
+    endReason: '清台后打进黑八',
+    shots: [
+      ReplayShot(
+        player: 0,
+        balls: balls,
+        angle: angleOf(cue.position, TableGeometry.footSpot),
+        power: 0.8,
+        calledPocket: null,
+        result: '开球',
+        potted: const [],
+      ),
+    ],
+  );
+}
+
 Future<SettingsProvider> pumpPage(WidgetTester tester, Widget page) async {
   final storage = await StorageService.instance;
   final settings = SettingsProvider(storage);
@@ -81,7 +110,7 @@ void main() {
     expect(find.text('最近对局'), findsOneWidget);
     expect(find.text('数据统计'), findsOneWidget);
     expect(find.text('玩法规则'), findsOneWidget);
-    expect(find.textContaining('v0.4.0'), findsOneWidget);
+    expect(find.textContaining('v0.4.1'), findsOneWidget);
   });
 
   testWidgets('首页进入设置页', (tester) async {
@@ -236,6 +265,19 @@ void main() {
     expect(find.text('最近战绩'), findsOneWidget);
     expect(find.text('1.0'), findsOneWidget);
     expect(find.text('还没有人机对局'), findsOneWidget);
+  });
+
+  testWidgets('数据统计页展示人机难度与最近战绩', (tester) async {
+    await MatchHistoryService.instance.add(sampleAiRecord());
+    await pumpPage(tester, const StatsPage());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('人机难度'), findsOneWidget);
+    expect(find.text('高手'), findsOneWidget);
+    expect(find.textContaining('1 / 1 胜'), findsOneWidget);
+    expect(find.text('1 胜 0 负'), findsOneWidget);
+    expect(find.text('胜'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
   });
 
   testWidgets('最近对局页可进入数据统计', (tester) async {
