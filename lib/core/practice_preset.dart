@@ -2,12 +2,14 @@ import 'ball.dart';
 import 'table_geometry.dart';
 import 'vec.dart';
 
-/// 练习球型模板：标准开球、直线、贴库与角度球，方便针对不同杆法练习。
+/// 练习球型模板：开球、直线、贴库、角度、长台与堆球，覆盖常用练习场景。
 enum PracticePreset {
   rack('标准开球'),
   straight('直线球'),
   rail('贴库球'),
-  cut('角度球');
+  cut('角度球'),
+  long('长台直线'),
+  cluster('堆球');
 
   const PracticePreset(this.label);
 
@@ -32,6 +34,15 @@ enum PracticePreset {
       _ball(1, 1.55, 0.55),
       _ball(9, 1.9, 0.95),
       _ball(8, 2.2, 0.35),
+    ],
+    long => [_ball(0, 0.4, 0.9), _ball(1, 2.0, 0.225), _ball(8, 1.3, 0.95)],
+    cluster => [
+      _ball(0, 0.5, 0.635),
+      _ball(1, 1.5, 0.635),
+      _ball(9, 1.558, 0.664),
+      _ball(2, 1.558, 0.606),
+      _ball(10, 1.616, 0.635),
+      _ball(8, 2.15, 0.9),
     ],
   };
 

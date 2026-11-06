@@ -27,6 +27,14 @@ void main() {
     }
   });
 
+  test('练习球型覆盖长台直线与堆球', () {
+    expect(PracticePreset.values, hasLength(6));
+    expect(PracticePreset.long.label, '长台直线');
+    expect(PracticePreset.long.layout(), hasLength(3));
+    expect(PracticePreset.cluster.label, '堆球');
+    expect(PracticePreset.cluster.layout(), hasLength(6));
+  });
+
   test('练习模式切换球型后清空杆数与快照', () {
     final controller = MatchController(
       mode: GameMode.practice,
