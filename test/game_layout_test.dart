@@ -25,9 +25,14 @@ const sizes = <String, Size>{
   '小屏手机': Size(360, 640),
   '主流手机': Size(390, 844),
   '横屏手机': Size(844, 390),
+  '横屏小手机': Size(640, 360),
+  '横屏旧机型': Size(568, 320),
+  '超小屏手机': Size(320, 480),
   '折叠屏展开': Size(720, 900),
+  '小尺寸窗口': Size(1024, 600),
   '桌面窗口': Size(1280, 800),
   '大屏桌面': Size(1920, 1080),
+  '超宽屏桌面': Size(2560, 1440),
 };
 
 Future<void> pumpGame(WidgetTester tester, Size size, {GameMode mode = GameMode.twoPlayers}) async {
@@ -116,6 +121,7 @@ void main() {
     test('窄屏在球台下方留出提示条，宽屏把提示内联到顶部条', () {
       final phone = GameLayout(const Size(390, 844));
       expect(phone.inline, isFalse);
+      expect(phone.compact, isFalse);
       expect(phone.info, isNotNull);
       expect(phone.singleRow, isFalse);
       expect(phone.info!.top, closeTo(phone.tableRect.bottom + GameLayout.gap, 0.001));
@@ -123,12 +129,57 @@ void main() {
 
       final desktop = GameLayout(const Size(1280, 800));
       expect(desktop.inline, isTrue);
+      expect(desktop.compact, isFalse);
       expect(desktop.info, isNull);
       expect(desktop.singleRow, isTrue);
 
       final landscape = GameLayout(const Size(844, 390));
       expect(landscape.inline, isTrue);
+      expect(landscape.compact, isTrue);
       expect(landscape.singleRow, isTrue);
+    });
+
+    test('横屏与矮窗口进入紧凑模式，不再预留提示条', () {
+      for (final page in const [Size(844, 390), Size(640, 360), Size(568, 320), Size(720, 520)]) {
+        final layout = GameLayout(page);
+        expect(layout.compact, isTrue, reason: '$page 应使用紧凑布局');
+        expect(layout.info, isNull, reason: '$page 不应预留提示条');
+        expect(layout.header.height, lessThanOrEqualTo(GameLayout.compactHeaderHeight));
+        expect(layout.tableRect.bottom, lessThanOrEqualTo(layout.dock.top));
+      }
+      for (final page in const [Size(390, 844), Size(800, 1280), Size(1280, 800)]) {
+        expect(GameLayout(page).compact, isFalse, reason: '$page 不应使用紧凑布局');
+      }
+    });
+
+    test('紧凑模式在 480 像素宽即可单行排布力度控制', () {
+      expect(GameLayout(const Size(480, 320)).singleRow, isTrue);
+      expect(GameLayout(const Size(479, 320)).singleRow, isFalse);
+      expect(GameLayout(const Size(520, 844)).singleRow, isFalse);
+      expect(GameLayout(const Size(560, 844)).singleRow, isTrue);
+    });
+
+    test('极小窗口球台不溢出且保持可见', () {
+      for (final page in const [Size(320, 240), Size(480, 240), Size(240, 320)]) {
+        final layout = GameLayout(page);
+        expect(layout.tableRect.left, greaterThanOrEqualTo(0), reason: '$page 球台越界');
+        expect(layout.tableRect.top, greaterThanOrEqualTo(0), reason: '$page 球台越界');
+        expect(layout.tableRect.right, lessThanOrEqualTo(page.width), reason: '$page 球台越界');
+        expect(layout.tableRect.bottom, lessThanOrEqualTo(page.height), reason: '$page 球台越界');
+        expect(layout.tableSize.width, greaterThan(0), reason: '$page 球台消失');
+        expect(layout.panel.right, lessThanOrEqualTo(page.width));
+        expect(layout.panel.left, greaterThanOrEqualTo(0));
+      }
+    });
+
+    test('球台缩放不超出可用区域', () {
+      for (final available in const [Size(800, 200), Size(300, 1000), Size(200, 120)]) {
+        final size = TableLayout.fit(available);
+        expect(size.width, lessThanOrEqualTo(available.width));
+        expect(size.height, lessThanOrEqualTo(available.height));
+        expect(size.width / size.height, closeTo(TableLayout.aspectRatio, 0.001));
+      }
+      expect(TableLayout.fit(Size.zero), Size.zero);
     });
   });
 
@@ -181,7 +232,36 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final entry in const {'小屏手机': Size(360, 640), '桌面窗口': Size(1280, 800)}.entries) {
+  for (final entry in const {'横屏小手机': Size(640, 360), '横屏旧机型': Size(568, 320)}.entries) {
+    testWidgets('${entry.key}：提示内联到顶部条，球台保持可用', (tester) async {
+      await pumpGame(tester, entry.value);
+      expect(find.byType(GameInfoPill), findsNothing);
+      expect(find.text('拖动球台瞄准，调整力度后击球'), findsWidgets);
+      expect(find.text('你的回合'), findsOneWidget);
+      expect(find.text('击 球'), findsOneWidget);
+      final table = tableSizeOf(tester);
+      expect(table.width, greaterThan(300));
+      expect(table.height, greaterThan(150));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('练习工具条在窄球台上不越界', (tester) async {
+    await pumpGame(tester, const Size(568, 320), mode: GameMode.practice);
+    expect(find.text('摆球'), findsOneWidget);
+    expect(find.text('球型'), findsOneWidget);
+    expect(find.text('重打'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    final table = tester.getRect(find.byKey(const Key('game-table')));
+    expect(table.left, greaterThanOrEqualTo(0));
+    expect(table.right, lessThanOrEqualTo(568));
+  });
+
+  for (final entry in const {
+    '小屏手机': Size(360, 640),
+    '横屏小手机': Size(640, 360),
+    '桌面窗口': Size(1280, 800),
+  }.entries) {
     for (final scale in const [1.3, 2.0]) {
       testWidgets('${entry.key} ${scale}x 字号下浮层不溢出', (tester) async {
         tester.binding.platformDispatcher.textScaleFactorTestValue = scale;
