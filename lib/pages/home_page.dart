@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/match_controller.dart';
+import '../flame/table_layout.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
@@ -43,6 +44,13 @@ class HomePage extends StatelessWidget {
               final twoColumns = constraints.maxWidth >= 620;
               final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
               final contentWidth = math.min(constraints.maxWidth - horizontal * 2, 760.0);
+              final heroCompact = constraints.maxHeight < 520;
+              // 缩略图限宽并限高，桌面与横屏首屏也能看到玩法入口。
+              final previewRatio = (heroCompact ? 0.32 : 0.42) * TableLayout.aspectRatio;
+              final previewWidth = math.max(
+                0.0,
+                math.min(contentWidth, math.min(480.0, constraints.maxHeight * previewRatio)),
+              );
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(horizontal, 14, horizontal, 24),
                 child: Center(
@@ -52,7 +60,11 @@ class HomePage extends StatelessWidget {
                       children: [
                         _TopBar(darkMode: settings.darkMode),
                         const SizedBox(height: 18),
-                        _Hero(skin: settings.tableSkin),
+                        _Hero(
+                          skin: settings.tableSkin,
+                          previewWidth: previewWidth,
+                          compact: heroCompact,
+                        ),
                         const SizedBox(height: 26),
                         if (twoColumns)
                           Wrap(
@@ -212,9 +224,13 @@ class _TopBar extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.skin});
+  const _Hero({required this.skin, required this.previewWidth, this.compact = false});
 
   final TableSkin skin;
+  final double previewWidth;
+
+  /// 横屏与矮窗口只保留球台缩略图与标题，把首屏留给玩法入口。
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -222,40 +238,47 @@ class _Hero extends StatelessWidget {
     final colors = theme.colorScheme;
     return Column(
       children: [
-        TablePreview(skin: skin),
-        const SizedBox(height: 18),
+        Align(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: previewWidth),
+            child: TablePreview(skin: skin),
+          ),
+        ),
+        SizedBox(height: compact ? 10 : 18),
         Text(
           '中式黑八',
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineMedium?.copyWith(
-            fontSize: 32,
-            letterSpacing: 10,
+            fontSize: compact ? 24 : 32,
+            letterSpacing: compact ? 6 : 10,
             color: colors.onSurface,
           ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _OrnamentLine(color: colors.outline),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                '落 袋 为 安',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  letterSpacing: 3,
+        if (!compact) ...[
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _OrnamentLine(color: colors.outline),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  '落 袋 为 安',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    letterSpacing: 3,
+                  ),
                 ),
               ),
-            ),
-            _OrnamentLine(color: colors.outline),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text(
-          '一杆一世界，清台见真章',
-          style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-        ),
+              _OrnamentLine(color: colors.outline),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '一杆一世界，清台见真章',
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+        ],
       ],
     );
   }
