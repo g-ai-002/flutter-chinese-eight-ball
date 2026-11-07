@@ -4,11 +4,7 @@ import '../../core/ai.dart';
 
 /// 设置页的自定义 AI 强度滑杆：实时展示插值后的瞄准误差与候选线路。
 class AiStrengthRow extends StatelessWidget {
-  const AiStrengthRow({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
+  const AiStrengthRow({super.key, required this.value, required this.onChanged});
 
   final double value;
   final ValueChanged<double> onChanged;

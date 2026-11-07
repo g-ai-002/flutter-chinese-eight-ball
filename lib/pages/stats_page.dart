@@ -66,8 +66,7 @@ class _StatsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    Widget card(String title, Widget child) =>
-        SectionCard(title: title, children: [child]);
+    Widget card(String title, Widget child) => SectionCard(title: title, children: [child]);
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
@@ -97,9 +96,7 @@ class _StatsBody extends StatelessWidget {
         Text(
           '数据来自本机保存的最近对局，仅保存在本设备。',
           textAlign: TextAlign.center,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
     );

@@ -34,29 +34,17 @@ class TablePointer {
 
   /// 点击瞄准时命中的目标球，母球不参与吸附。
   BallState? targetBallAt(Vec2 point, Iterable<BallState> balls) {
-    return _nearest(
-      point,
-      balls,
-      range: TableGeometry.ballRadius * snapScale,
-      includeCue: false,
-    );
+    return _nearest(point, balls, range: TableGeometry.ballRadius * snapScale, includeCue: false);
   }
 
   /// 摆球时抓取的球，包含母球。
   BallState? ballToGrab(Vec2 point, Iterable<BallState> balls) {
-    return _nearest(
-      point,
-      balls,
-      range: TableGeometry.ballRadius * grabScale,
-      includeCue: true,
-    );
+    return _nearest(point, balls, range: TableGeometry.ballRadius * grabScale, includeCue: true);
   }
 
   /// 点击指袋时命中的袋口编号。
-  int? pocketAt(Vec2 point) => TableGeometry.pocketAt(
-    point,
-    tolerance: TableGeometry.pocketRadius * pocketScale,
-  );
+  int? pocketAt(Vec2 point) =>
+      TableGeometry.pocketAt(point, tolerance: TableGeometry.pocketRadius * pocketScale);
 
   BallState? _nearest(
     Vec2 point,

@@ -27,9 +27,7 @@ Future<void> showLogDialog(BuildContext context) async {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(dialogContext)
-                      .colorScheme
-                      .surfaceContainerHighest
+                  color: Theme.of(dialogContext).colorScheme.surfaceContainerHighest
                       .withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -45,10 +43,7 @@ Future<void> showLogDialog(BuildContext context) async {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('关闭'),
-        ),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('关闭')),
       ],
     ),
   );

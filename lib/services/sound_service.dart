@@ -33,47 +33,17 @@ class SoundService {
     // 皮头击球：高频短促瞬态，混一点杆头摩擦噪声。
     SoundFeedback.strike: [
       SynthNote(frequency: 1240, start: 0, duration: 0.045, noise: 0.35),
-      SynthNote(
-        frequency: 640,
-        start: 0.003,
-        duration: 0.07,
-        gain: 0.3,
-        noise: 0.12,
-      ),
+      SynthNote(frequency: 640, start: 0.003, duration: 0.07, gain: 0.3, noise: 0.12),
     ],
     // 球撞球：清脆的树脂撞击声。
     SoundFeedback.impact: [
-      SynthNote(
-        frequency: 1560,
-        start: 0,
-        duration: 0.028,
-        gain: 0.4,
-        noise: 0.55,
-      ),
-      SynthNote(
-        frequency: 920,
-        start: 0.002,
-        duration: 0.05,
-        gain: 0.34,
-        noise: 0.3,
-      ),
+      SynthNote(frequency: 1560, start: 0, duration: 0.028, gain: 0.4, noise: 0.55),
+      SynthNote(frequency: 920, start: 0.002, duration: 0.05, gain: 0.34, noise: 0.3),
     ],
     // 落袋：球体坠入袋兜的低沉回响。
     SoundFeedback.pocket: [
-      SynthNote(
-        frequency: 430,
-        start: 0,
-        duration: 0.08,
-        gain: 0.35,
-        noise: 0.5,
-      ),
-      SynthNote(
-        frequency: 215,
-        start: 0.03,
-        duration: 0.18,
-        gain: 0.6,
-        noise: 0.22,
-      ),
+      SynthNote(frequency: 430, start: 0, duration: 0.08, gain: 0.35, noise: 0.5),
+      SynthNote(frequency: 215, start: 0.03, duration: 0.18, gain: 0.6, noise: 0.22),
       SynthNote(frequency: 128, start: 0.06, duration: 0.24),
     ],
     // 犯规：两段下行提示。

@@ -10,11 +10,7 @@ import 'table_component.dart';
 
 /// Flame 游戏入口：推进物理时间并绘制球台。
 class EightBallGame extends FlameGame {
-  EightBallGame({
-    required this.controller,
-    required this.settings,
-    this.placementPreview,
-  });
+  EightBallGame({required this.controller, required this.settings, this.placementPreview});
 
   final MatchController controller;
   final SettingsProvider settings;

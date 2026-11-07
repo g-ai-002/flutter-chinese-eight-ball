@@ -88,10 +88,7 @@ class _PresetImportDialogState extends State<_PresetImportDialog> {
         onSubmitted: (_) => _submit(),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
-        ),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('取消')),
         FilledButton(onPressed: _submit, child: const Text('导入')),
       ],
     );

@@ -10,8 +10,7 @@ class MatchHistory {
 
   /// 统一排序与裁剪，读写两侧共用同一规则。
   static List<MatchRecord> normalize(Iterable<MatchRecord> records) {
-    final sorted = [...records]
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final sorted = [...records]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return List.unmodifiable(sorted.take(maxRecords));
   }
 

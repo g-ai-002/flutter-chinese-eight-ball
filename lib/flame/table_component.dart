@@ -15,11 +15,7 @@ import 'table_scene.dart';
 /// 组件本身不处理手势，瞄准与摆球由页面层的 GestureDetector 转发，
 /// 这样 Flame 只负责画面与物理推进，交互逻辑更易测试。
 class TableComponent extends PositionComponent {
-  TableComponent({
-    required this.controller,
-    required this.settings,
-    this.placementPreview,
-  });
+  TableComponent({required this.controller, required this.settings, this.placementPreview});
 
   final MatchController controller;
   final SettingsProvider settings;
@@ -50,9 +46,7 @@ class TableComponent extends PositionComponent {
         SoundService.play(SoundFeedback.strike);
       } else if (phase == MatchPhase.gameOver) {
         final winner = controller.rules.winner;
-        final playerWin =
-            controller.mode == GameMode.twoPlayers ||
-            winner == controller.humanSide;
+        final playerWin = controller.mode == GameMode.twoPlayers || winner == controller.humanSide;
         SoundService.play(playerWin ? SoundFeedback.win : SoundFeedback.lose);
       }
       _lastPhase = phase;
@@ -72,9 +66,7 @@ class TableComponent extends PositionComponent {
           SoundService.play(SoundFeedback.pocket, volume: 0.85);
           _scene.addPot(
             event,
-            controller.simulation.balls.firstWhere(
-              (item) => item.id == event.ballId,
-            ),
+            controller.simulation.balls.firstWhere((item) => item.id == event.ballId),
           );
       }
     }

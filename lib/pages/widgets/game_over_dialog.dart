@@ -38,17 +38,11 @@ class GameOverDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            reason,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(reason, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 10),
           Text(
             '共 $shots 杆',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       ),

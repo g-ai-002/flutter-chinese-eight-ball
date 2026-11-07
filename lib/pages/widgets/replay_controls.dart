@@ -40,9 +40,7 @@ class ReplayControls extends StatelessWidget {
               tooltip: player.isPlaying ? '暂停' : (player.atEnd ? '重新播放' : '播放'),
               onPressed: player.canPlay ? player.togglePlay : null,
               icon: Icon(
-                player.isPlaying
-                    ? Icons.pause
-                    : (player.atEnd ? Icons.replay : Icons.play_arrow),
+                player.isPlaying ? Icons.pause : (player.atEnd ? Icons.replay : Icons.play_arrow),
                 size: 22,
               ),
             ),
@@ -52,9 +50,7 @@ class ReplayControls extends StatelessWidget {
           Text(
             '第 ${player.displayIndex} / ${player.total} 杆 · '
             '${player.isPlaying ? '播放中' : (player.atEnd ? '已结束' : '已暂停')}',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
           ),
       ],
     );

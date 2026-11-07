@@ -19,8 +19,7 @@ class EightBallApp extends StatefulWidget {
   State<EightBallApp> createState() => _EightBallAppState();
 }
 
-class _EightBallAppState extends State<EightBallApp>
-    with WidgetsBindingObserver {
+class _EightBallAppState extends State<EightBallApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -77,9 +76,7 @@ class _EightBallAppState extends State<EightBallApp>
             // Web 首次点击用于解除浏览器的自动播放限制。
             builder: (context, child) => Listener(
               behavior: HitTestBehavior.translucent,
-              onPointerDown: kIsWeb
-                  ? (_) => MusicService.retryOnInteraction()
-                  : null,
+              onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
               child: child ?? const SizedBox.shrink(),
             ),
             home: const HomePage(),

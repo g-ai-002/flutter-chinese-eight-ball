@@ -16,13 +16,8 @@ class MatchHistoryService {
 
   Future<List<MatchRecord>> add(MatchRecord record) async {
     final records = await load();
-    final next = await _save([
-      record,
-      ...records.where((item) => item.id != record.id),
-    ]);
-    LogService.info(
-      '保存对局记录: ${record.title} · ${record.subtitle} · ${record.endReason}',
-    );
+    final next = await _save([record, ...records.where((item) => item.id != record.id)]);
+    LogService.info('保存对局记录: ${record.title} · ${record.subtitle} · ${record.endReason}');
     return next;
   }
 

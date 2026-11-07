@@ -46,15 +46,9 @@ class _CompactPlayerCard extends StatelessWidget {
       duration: const Duration(milliseconds: 160),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: active
-            ? colors.primaryContainer.withValues(alpha: 0.55)
-            : colors.surface,
+        color: active ? colors.primaryContainer.withValues(alpha: 0.55) : colors.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: active
-              ? colors.primary
-              : colors.outline.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: active ? colors.primary : colors.outline.withValues(alpha: 0.8)),
       ),
       child: Row(
         children: [
@@ -75,12 +69,7 @@ class _CompactPlayerCard extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            detail,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
-          ),
+          Text(detail, style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant)),
         ],
       ),
     );

@@ -106,12 +106,10 @@ class MatchController extends ChangeNotifier {
   bool get isEditingBalls => _practice.editing;
   PracticePreset? get practicePreset => _practice.preset;
   int get shotCount => isPractice ? _practice.shots : _rules.shotNumber;
-  bool get canUndoPracticeShot =>
-      isPractice && _practice.canUndo && _phase == MatchPhase.aiming;
+  bool get canUndoPracticeShot => isPractice && _practice.canUndo && _phase == MatchPhase.aiming;
 
   /// 当前玩家能否瞄准：AI 回合、球运动中与练习摆球时不可操作。
-  bool get canAim =>
-      _phase == MatchPhase.aiming && isHumanTurn && !isEditingBalls;
+  bool get canAim => _phase == MatchPhase.aiming && isHumanTurn && !isEditingBalls;
 
   /// 当前玩家能否出杆：攻打黑八时还必须先指定袋口。
   bool get canShoot => canAim && (!needsPocketCall || _calledPocket != null);
@@ -136,8 +134,7 @@ class MatchController extends ChangeNotifier {
   bool get _isAiTurn => mode == GameMode.vsAi && _rules.current != humanSide;
 
   /// AI 只允许在瞄准或摆球阶段行动，避免在球运动时被旧定时器打断。
-  bool get _canAiAct =>
-      _phase == MatchPhase.aiming || _phase == MatchPhase.placingCue;
+  bool get _canAiAct => _phase == MatchPhase.aiming || _phase == MatchPhase.placingCue;
 
   String playerName(int player) {
     if (isPractice) return '练习';
@@ -165,8 +162,7 @@ class MatchController extends ChangeNotifier {
   int remainingCount(PlayerGroup group) =>
       balls.where((ball) => ball.active && ball.kind == group.kind).length;
 
-  int get remainingEight =>
-      balls.where((ball) => ball.active && ball.isEight).length;
+  int get remainingEight => balls.where((ball) => ball.active && ball.isEight).length;
 
   /// 本方还需打进的球数（清台后显示黑八 1 颗）。
   int remainingFor(int player) {
@@ -181,10 +177,8 @@ class MatchController extends ChangeNotifier {
 
   void adjustAim(double delta) => aimAngle += delta;
 
-  void setPower(double value) {
-    power = value.clamp(0.05, 1.0);
-    notifyListeners();
-  }
+  /// 力度只影响球杆拉距与出杆，滑杆自己刷新即可，不触发整页重建。
+  void setPower(double value) => power = value.clamp(0.05, 1.0);
 
   /// 指向台面上的某个坐标，用于拖动瞄准与点击球体吸附。
   void aimAt(Vec2 point) {
@@ -234,11 +228,7 @@ class MatchController extends ChangeNotifier {
   /// 练习模式移动一颗球，位置合法才生效。
   bool moveBall(int id, Vec2 position) {
     if (!isPractice || !_practice.editing) return false;
-    if (!TableGeometry.isValidBallPlacement(
-      position,
-      obstacles: balls,
-      ignoreId: id,
-    )) {
+    if (!TableGeometry.isValidBallPlacement(position, obstacles: balls, ignoreId: id)) {
       return false;
     }
     for (final ball in balls) {
@@ -325,11 +315,7 @@ class MatchController extends ChangeNotifier {
       return;
     }
 
-    final ruling = _rules.apply(
-      outcome,
-      onEight: _onEightBefore == 1,
-      calledPocket: _calledPocket,
-    );
+    final ruling = _rules.apply(outcome, onEight: _onEightBefore == 1, calledPocket: _calledPocket);
     _calledPocket = null;
     _recorder.endShot(result: ruling.message, potted: outcome.pottedIds);
     _pushLog(ruling.message);
@@ -348,9 +334,7 @@ class MatchController extends ChangeNotifier {
         playerWin: mode == GameMode.twoPlayers || ruling.winner == humanSide,
         reason: ruling.endReason ?? ruling.message,
       );
-      LogService.info(
-        '对局结束: $matchTitle · ${ruling.endReason} · 共 ${_recorder.shotCount} 杆',
-      );
+      LogService.info('对局结束: $matchTitle · ${ruling.endReason} · 共 ${_recorder.shotCount} 杆');
       notifyListeners();
       return;
     }
@@ -388,9 +372,7 @@ class MatchController extends ChangeNotifier {
     _phase = MatchPhase.aiming;
     aimAngle = angleOf(cueBall.position, TableGeometry.footSpot);
     final potted = outcome.pottedIds.where((id) => id != 0).toList();
-    final target = potted.isEmpty
-        ? '本杆未进球'
-        : '打进 ${potted.map((id) => '#$id').join('、')}';
+    final target = potted.isEmpty ? '本杆未进球' : '打进 ${potted.map((id) => '#$id').join('、')}';
     _pushLog(outcome.cuePotted ? '$target · 母球落袋，已放回开球点' : target);
     LogService.info(
       '练习: 落袋=${outcome.pottedIds} 首碰=${outcome.firstContact} '
@@ -419,10 +401,7 @@ class MatchController extends ChangeNotifier {
   }
 
   void _autoPlaceCueForAi() {
-    final spot = TableGeometry.nearestValidCueSpot(
-      TableGeometry.headSpot,
-      obstacles: balls,
-    );
+    final spot = TableGeometry.nearestValidCueSpot(TableGeometry.headSpot, obstacles: balls);
     if (spot == null) return;
     _simulation.placeCue(spot);
     _rules.ballInHand = false;
@@ -445,10 +424,7 @@ class MatchController extends ChangeNotifier {
   }
 
   Vec2 _defaultCueSpot() {
-    return TableGeometry.nearestValidCueSpot(
-          TableGeometry.headSpot,
-          obstacles: balls,
-        ) ??
+    return TableGeometry.nearestValidCueSpot(TableGeometry.headSpot, obstacles: balls) ??
         TableGeometry.center;
   }
 
@@ -532,10 +508,7 @@ class MatchController extends ChangeNotifier {
     }
 
     _aiRunning = false;
-    if (_disposed ||
-        generation != _generation ||
-        _phase != MatchPhase.aiming ||
-        !_isAiTurn) {
+    if (_disposed || generation != _generation || _phase != MatchPhase.aiming || !_isAiTurn) {
       return;
     }
     _fire();

@@ -7,11 +7,7 @@ export 'match_trend.dart';
 
 /// 单一 AI 难度的战绩。
 class DifficultyStats {
-  const DifficultyStats({
-    required this.label,
-    required this.matches,
-    required this.wins,
-  });
+  const DifficultyStats({required this.label, required this.matches, required this.wins});
 
   /// 按难度聚合人机对局：已知难度按「入门 → 进阶 → 高手」排列，
   /// 其他标签追加在后面，保证统计页顺序稳定。
@@ -32,11 +28,7 @@ class DifficultyStats {
     ];
     return [
       for (final label in labels)
-        DifficultyStats(
-          label: label,
-          matches: byLabel[label]!.matches,
-          wins: byLabel[label]!.wins,
-        ),
+        DifficultyStats(label: label, matches: byLabel[label]!.matches, wins: byLabel[label]!.wins),
     ];
   }
 
@@ -67,10 +59,7 @@ class MatchStats {
     required this.daily,
   });
 
-  factory MatchStats.fromRecords(
-    Iterable<MatchRecord> records, {
-    DateTime? now,
-  }) {
+  factory MatchStats.fromRecords(Iterable<MatchRecord> records, {DateTime? now}) {
     final all = newestFirst(records);
     final aiRecords = [
       for (final record in all)
@@ -88,9 +77,7 @@ class MatchStats {
       bestShotPotted: tally.bestShotPotted,
       bestStreak: tally.bestStreak,
       difficulties: DifficultyStats.breakdown(aiRecords),
-      recentAiResults: [
-        for (final record in aiRecords.take(5)) record.playerWin,
-      ],
+      recentAiResults: [for (final record in aiRecords.take(5)) record.playerWin],
       trend: MatchTrend.of(all),
       daily: DailyTrend.of(all, now: now),
     );

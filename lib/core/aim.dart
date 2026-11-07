@@ -40,8 +40,7 @@ AimSolution solveAim({
     if (projection <= 0) continue;
     final perpendicularSquared = offset.lengthSquared - projection * projection;
     if (perpendicularSquared > diameter * diameter) continue;
-    final entry =
-        projection - math.sqrt(diameter * diameter - perpendicularSquared);
+    final entry = projection - math.sqrt(diameter * diameter - perpendicularSquared);
     final distance = entry < 0 ? 0.0 : entry;
     if (distance >= nearest) continue;
     nearest = distance;
@@ -59,10 +58,7 @@ AimSolution solveAim({
     );
   }
 
-  return AimSolution(
-    direction: direction,
-    cushionPoint: cushionPointOf(cue, direction),
-  );
+  return AimSolution(direction: direction, cushionPoint: cushionPointOf(cue, direction));
 }
 
 /// 射线与台面内沿的交点，返回最先碰到的库边点。

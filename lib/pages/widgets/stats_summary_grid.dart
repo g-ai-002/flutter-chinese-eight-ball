@@ -13,10 +13,7 @@ class StatsSummaryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = <({String label, String value})>[
       (label: '总场次', value: '${stats.matches}'),
-      (
-        label: '人机胜率',
-        value: stats.aiMatches == 0 ? '—' : formatPercent(stats.aiWinRate),
-      ),
+      (label: '人机胜率', value: stats.aiMatches == 0 ? '—' : formatPercent(stats.aiWinRate)),
       (label: '双人场次', value: '${stats.twoPlayerMatches}'),
       (label: '场均杆数', value: stats.averageShots.toStringAsFixed(1)),
       (label: '累计进球', value: '${stats.potted}'),
@@ -28,8 +25,7 @@ class StatsSummaryGrid extends StatelessWidget {
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 560 ? 4 : 2;
         const spacing = 10.0;
-        final width =
-            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        final width = (constraints.maxWidth - spacing * (columns - 1)) / columns;
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
@@ -67,12 +63,7 @@ class _StatTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
-          ),
+          Text(label, style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant)),
           Text(
             value,
             maxLines: 1,

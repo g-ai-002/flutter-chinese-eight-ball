@@ -23,12 +23,7 @@ class StatsBar {
 
 /// 统计页共用柱状图：走势与近 7 天趋势共享柱宽、圆角、最小高度与标注样式。
 class StatsBars extends StatelessWidget {
-  const StatsBars({
-    super.key,
-    required this.bars,
-    this.height = 96,
-    this.minFactor = 0.06,
-  });
+  const StatsBars({super.key, required this.bars, this.height = 96, this.minFactor = 0.06});
 
   final List<StatsBar> bars;
   final double height;
@@ -60,18 +55,14 @@ class StatsBars extends StatelessWidget {
                   Expanded(
                     child: FractionallySizedBox(
                       alignment: Alignment.bottomCenter,
-                      heightFactor: bar.heightFactor
-                          .clamp(minFactor, 1)
-                          .toDouble(),
+                      heightFactor: bar.heightFactor.clamp(minFactor, 1).toDouble(),
                       widthFactor: 0.5,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: bar.muted
                               ? colors.outlineVariant.withValues(alpha: 0.4)
                               : colors.primary.withValues(alpha: 0.35),
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(4),
-                          ),
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                         ),
                       ),
                     ),

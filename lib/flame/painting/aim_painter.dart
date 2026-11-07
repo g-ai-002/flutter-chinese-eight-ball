@@ -14,24 +14,14 @@ import 'paint_utils.dart';
 /// 绘制瞄准辅助线、球杆、指袋标记与自由球摆放预览。
 class AimPainter {
   /// 攻打黑八时在六个袋口画可选标记，点击袋口即可指定。
-  void paintPocketTargets(
-    Canvas canvas,
-    TableLayout layout,
-    MatchController controller,
-  ) {
+  void paintPocketTargets(Canvas canvas, TableLayout layout, MatchController controller) {
     if (!controller.needsPocketCall) return;
     for (var index = 0; index < TableGeometry.pockets.length; index++) {
       final selected = controller.calledPocket == index;
       final center = layout.toCanvas(TableGeometry.pockets[index]);
       final radius = math.max(10.5, layout.pocketRadius * 0.95);
-      final color = selected
-          ? const Color(0xFFFFC857)
-          : Colors.white.withValues(alpha: 0.72);
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()..color = Colors.black.withValues(alpha: 0.34),
-      );
+      final color = selected ? const Color(0xFFFFC857) : Colors.white.withValues(alpha: 0.72);
+      canvas.drawCircle(center, radius, Paint()..color = Colors.black.withValues(alpha: 0.34));
       canvas.drawCircle(
         center,
         radius,
@@ -40,19 +30,11 @@ class AimPainter {
           ..strokeWidth = selected ? 2.6 : 1.3
           ..color = color,
       );
-      canvas.drawCircle(
-        center,
-        radius * (selected ? 0.42 : 0.26),
-        Paint()..color = color,
-      );
+      canvas.drawCircle(center, radius * (selected ? 0.42 : 0.26), Paint()..color = color);
     }
   }
 
-  void paintGuide(
-    Canvas canvas,
-    TableLayout layout,
-    MatchController controller,
-  ) {
+  void paintGuide(Canvas canvas, TableLayout layout, MatchController controller) {
     final aim = solveAim(
       cue: controller.cuePosition,
       balls: controller.balls,
@@ -100,8 +82,7 @@ class AimPainter {
     if (target == null) return;
     final targetCenter = layout.toCanvas(target.position);
     final direction = aim.targetDirection ?? Vec2.zero;
-    final end =
-        targetCenter + Offset(direction.x, direction.y) * layout.scale * 0.42;
+    final end = targetCenter + Offset(direction.x, direction.y) * layout.scale * 0.42;
     canvas.drawLine(
       targetCenter,
       end,
@@ -117,9 +98,7 @@ class AimPainter {
     final center = layout.toCanvas(controller.cuePosition);
     final pullback = layout.ballRadius * (1.3 + controller.power * 4.2);
     final tip = center - Offset(direction.x, direction.y) * pullback;
-    final butt =
-        center -
-        Offset(direction.x, direction.y) * (pullback + layout.scale * 1.08);
+    final butt = center - Offset(direction.x, direction.y) * (pullback + layout.scale * 1.08);
     final normal = Offset(-direction.y, direction.x);
     final tipHalf = layout.scale * 0.0042;
     final buttHalf = layout.scale * 0.013;
@@ -137,11 +116,7 @@ class AimPainter {
         ..shader = ui.Gradient.linear(
           tip,
           butt,
-          [
-            const Color(0xFFE9D3A6),
-            const Color(0xFFC79A5B),
-            const Color(0xFF8B5A2B),
-          ],
+          [const Color(0xFFE9D3A6), const Color(0xFFC79A5B), const Color(0xFF8B5A2B)],
           [0, 0.55, 1],
         ),
     );
@@ -154,8 +129,7 @@ class AimPainter {
     );
 
     // 先角与皮头。
-    final ferruleEnd =
-        tip + Offset(direction.x, direction.y) * layout.scale * 0.05;
+    final ferruleEnd = tip + Offset(direction.x, direction.y) * layout.scale * 0.05;
     canvas.drawLine(
       tip,
       ferruleEnd,
@@ -179,10 +153,7 @@ class AimPainter {
     MatchController controller,
     Vec2 preview,
   ) {
-    final valid = TableGeometry.isValidCuePlacement(
-      preview,
-      obstacles: controller.balls,
-    );
+    final valid = TableGeometry.isValidCuePlacement(preview, obstacles: controller.balls);
     final center = layout.toCanvas(preview);
     canvas.drawCircle(
       center,
@@ -197,8 +168,9 @@ class AimPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1, layout.scale * 0.004)
-        ..color = (valid ? const Color(0xFF6EC3A2) : const Color(0xFFE07A72))
-            .withValues(alpha: 0.9),
+        ..color = (valid ? const Color(0xFF6EC3A2) : const Color(0xFFE07A72)).withValues(
+          alpha: 0.9,
+        ),
     );
   }
 

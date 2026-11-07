@@ -92,8 +92,7 @@ class _GamePageState extends State<GamePage> {
     if (!mounted) return;
     final rules = _controller.rules;
     final winner = rules.winner ?? 0;
-    final playerWin =
-        widget.mode == GameMode.twoPlayers || winner == widget.humanSide;
+    final playerWin = widget.mode == GameMode.twoPlayers || winner == widget.humanSide;
     final title = _controller.matchTitle;
     final record = _controller.finishedRecord;
     await _saveRecord(record);
@@ -110,9 +109,7 @@ class _GamePageState extends State<GamePage> {
           Navigator.of(dialogContext).pop();
           Navigator.of(context).pop();
         },
-        onReplay: record == null
-            ? null
-            : () => _openReplay(dialogContext, record),
+        onReplay: record == null ? null : () => _openReplay(dialogContext, record),
         onRestart: () {
           Navigator.of(dialogContext).pop();
           _controller.restart();
@@ -131,14 +128,10 @@ class _GamePageState extends State<GamePage> {
     _savedRecord = record;
   }
 
-  Future<void> _openReplay(
-    BuildContext dialogContext,
-    MatchRecord record,
-  ) async {
+  Future<void> _openReplay(BuildContext dialogContext, MatchRecord record) async {
     Navigator.of(dialogContext).pop();
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
+    await Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
     // 回放结束后回到终局球台，重新给出「再来一局」入口。
     if (!mounted || _controller.phase != MatchPhase.gameOver) return;
     _dialogOpen = true;
@@ -194,9 +187,9 @@ class _GamePageState extends State<GamePage> {
         actions: [
           IconButton(
             tooltip: '玩法规则',
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
+            onPressed: () =>
+                Navigator.of(context)
+                    .push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
             icon: const Icon(Icons.menu_book_outlined, size: 21),
           ),
           IconButton(
@@ -211,8 +204,7 @@ class _GamePageState extends State<GamePage> {
           animation: _controller,
           builder: (context, _) => LayoutBuilder(
             builder: (context, constraints) {
-              final wide =
-                  constraints.maxWidth >= 980 && constraints.maxHeight >= 520;
+              final wide = constraints.maxWidth >= 980 && constraints.maxHeight >= 520;
               if (wide) {
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
@@ -258,11 +250,7 @@ class _GamePageState extends State<GamePage> {
                     const SizedBox(height: 8),
                     Expanded(
                       child: Center(
-                        child: _buildTable(
-                          game,
-                          constraints.maxWidth,
-                          constraints.maxHeight - 190,
-                        ),
+                        child: _buildTable(game, constraints.maxWidth, constraints.maxHeight - 190),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -271,12 +259,8 @@ class _GamePageState extends State<GamePage> {
                     PowerControl(
                       power: _controller.power,
                       onPowerChanged: _controller.setPower,
-                      onAimLeft: _controller.canAim
-                          ? () => _controller.adjustAim(-0.006)
-                          : null,
-                      onAimRight: _controller.canAim
-                          ? () => _controller.adjustAim(0.006)
-                          : null,
+                      onAimLeft: _controller.canAim ? () => _controller.adjustAim(-0.006) : null,
+                      onAimRight: _controller.canAim ? () => _controller.adjustAim(0.006) : null,
                       onShoot: _controller.shoot,
                       canShoot: _controller.canShoot,
                       hint: gameHint(_controller),
@@ -293,8 +277,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   String get _subtitle => switch (widget.mode) {
-    GameMode.vsAi =>
-      '中式黑八 · ${AiTuning.of(widget.difficulty, widget.aiStrength).label}',
+    GameMode.vsAi => '中式黑八 · ${AiTuning.of(widget.difficulty, widget.aiStrength).label}',
     GameMode.twoPlayers => '中式黑八 · 同屏对局',
     GameMode.practice => '中式黑八 · 自由练习',
   };
@@ -311,12 +294,9 @@ class _GamePageState extends State<GamePage> {
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTapDown: (details) =>
-                  _handlePointer(details.localPosition, size, tap: true),
-              onPanStart: (details) =>
-                  _handlePointer(details.localPosition, size, startDrag: true),
-              onPanUpdate: (details) =>
-                  _handlePointer(details.localPosition, size),
+              onTapDown: (details) => _handlePointer(details.localPosition, size, tap: true),
+              onPanStart: (details) => _handlePointer(details.localPosition, size, startDrag: true),
+              onPanUpdate: (details) => _handlePointer(details.localPosition, size),
               onPanEnd: (_) => _handlePointerEnd(size),
               child: const SizedBox.expand(),
             ),
@@ -341,12 +321,7 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  void _handlePointer(
-    Offset local,
-    Size size, {
-    bool tap = false,
-    bool startDrag = false,
-  }) {
+  void _handlePointer(Offset local, Size size, {bool tap = false, bool startDrag = false}) {
     final pointer = TablePointer(TableLayout(size));
     var point = pointer.toTable(local);
 

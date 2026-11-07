@@ -17,11 +17,7 @@ class BallImpact extends ShotEvent {
 }
 
 class BallPocketed extends ShotEvent {
-  const BallPocketed({
-    required this.ballId,
-    required this.pocketIndex,
-    required this.position,
-  });
+  const BallPocketed({required this.ballId, required this.pocketIndex, required this.position});
 
   final int ballId;
   final int pocketIndex;
@@ -70,13 +66,13 @@ class ShotOutcome {
 /// 用固定子步长积分，保证高速度下也不会穿透球体；实时动画与 AI 试算
 /// 使用同一套步进逻辑，因此 AI 预判结果与真实击球一致。
 class ShotSimulation {
-  ShotSimulation({required Iterable<BallState> balls})
-    : balls = BallState.cloneAll(balls);
+  ShotSimulation({required Iterable<BallState> balls}) : balls = BallState.cloneAll(balls);
 
   static const double maxShotSpeed = 4.6;
   static const double ballRestitution = 0.94;
   static const double cushionRestitution = 0.72;
   static const double _stopSpeed = 0.012;
+  static const double _stopSpeedSquared = _stopSpeed * _stopSpeed;
   static const double _maxSubstep = 1 / 240;
   static const double maxDuration = 24;
 
@@ -94,7 +90,9 @@ class ShotSimulation {
   bool get settled {
     if (timedOut) return true;
     for (final ball in balls) {
-      if (ball.active && ball.speed > _stopSpeed) return false;
+      if (ball.active && ball.velocity.lengthSquared > _stopSpeedSquared) {
+        return false;
+      }
     }
     return true;
   }
@@ -144,7 +142,8 @@ class ShotSimulation {
   void _substep(double dt) {
     for (final ball in balls) {
       if (!ball.active) continue;
-      ball.position = ball.position + ball.velocity * dt;
+      final p = ball.position, v = ball.velocity;
+      ball.position = Vec2(p.x + v.x * dt, p.y + v.y * dt);
     }
     _resolveBallCollisions();
     _capturePockets();
@@ -153,34 +152,36 @@ class ShotSimulation {
   }
 
   void _resolveBallCollisions() {
+    const diameter = TableGeometry.ballRadius * 2;
+    const diameterSquared = diameter * diameter;
     for (var i = 0; i < balls.length; i++) {
       final a = balls[i];
       if (!a.active) continue;
       for (var j = i + 1; j < balls.length; j++) {
         final b = balls[j];
         if (!b.active) continue;
-        final delta = b.position - a.position;
-        final distance = delta.length;
-        const diameter = TableGeometry.ballRadius * 2;
-        if (distance >= diameter) continue;
+        final dx = b.position.x - a.position.x;
+        final dy = b.position.y - a.position.y;
+        final distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared >= diameterSquared) continue;
 
-        final normal = distance < 1e-7
-            ? const Vec2(1, 0)
-            : delta * (1 / distance);
-        final overlap = diameter - distance;
-        a.position = a.position - normal * (overlap / 2);
-        b.position = b.position + normal * (overlap / 2);
+        final distance = math.sqrt(distanceSquared);
+        final overlapping = distance < 1e-7;
+        final nx = overlapping ? 1.0 : dx * (1 / distance);
+        final ny = overlapping ? 0.0 : dy * (1 / distance);
+        final push = (diameter - distance) / 2;
+        a.position = Vec2(a.position.x - nx * push, a.position.y - ny * push);
+        b.position = Vec2(b.position.x + nx * push, b.position.y + ny * push);
 
         if (a.isCue && firstContact == null) firstContact = b.id;
         if (b.isCue && firstContact == null) firstContact = a.id;
 
-        final relative = a.velocity - b.velocity;
-        final closing = relative.dot(normal);
+        final closing = (a.velocity.x - b.velocity.x) * nx + (a.velocity.y - b.velocity.y) * ny;
         if (closing <= 0) continue;
 
         final transfer = closing * ballRestitution;
-        a.velocity = a.velocity - normal * transfer;
-        b.velocity = b.velocity + normal * transfer;
+        a.velocity = Vec2(a.velocity.x - nx * transfer, a.velocity.y - ny * transfer);
+        b.velocity = Vec2(b.velocity.x + nx * transfer, b.velocity.y + ny * transfer);
         if (closing > 0.18) {
           events.add(BallImpact(strength: closing, ballBall: true));
         }
@@ -189,22 +190,18 @@ class ShotSimulation {
   }
 
   void _capturePockets() {
+    const radiusSquared = TableGeometry.pocketRadius * TableGeometry.pocketRadius;
     for (final ball in balls) {
       if (!ball.active) continue;
       for (var index = 0; index < TableGeometry.pockets.length; index++) {
         final pocket = TableGeometry.pockets[index];
-        if (ball.position.distanceTo(pocket) <= TableGeometry.pocketRadius) {
-          final event = BallPocketed(
-            ballId: ball.id,
-            pocketIndex: index,
-            position: ball.position,
-          );
-          ball
-            ..active = false
-            ..velocity = Vec2.zero;
-          events.add(event);
-          break;
-        }
+        if (ball.position.distanceSquaredTo(pocket) > radiusSquared) continue;
+        final event = BallPocketed(ballId: ball.id, pocketIndex: index, position: ball.position);
+        ball
+          ..active = false
+          ..velocity = Vec2.zero;
+        events.add(event);
+        break;
       }
     }
   }
@@ -264,9 +261,7 @@ class ShotSimulation {
       }
       final deceleration = 1.15 + 0.45 * speed;
       final nextSpeed = math.max(0.0, speed - deceleration * dt);
-      ball.velocity = nextSpeed <= _stopSpeed
-          ? Vec2.zero
-          : ball.velocity * (nextSpeed / speed);
+      ball.velocity = nextSpeed <= _stopSpeed ? Vec2.zero : ball.velocity * (nextSpeed / speed);
     }
   }
 

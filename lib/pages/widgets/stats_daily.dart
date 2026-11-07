@@ -19,9 +19,7 @@ class StatsDaily extends StatelessWidget {
         children: [
           Text(
             '近 ${trend.points.length} 天 · ${trend.matches} 场 · 柱高为单日进球率',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
           StatsBars(

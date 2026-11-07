@@ -28,11 +28,7 @@ class AiTable {
   static const double _ghostClearance = 0.0012;
 
   /// 当前球手的合法目标球：清台后只打黑八，开放球台排除黑八。
-  static List<BallState> legalTargets(
-    List<BallState> balls,
-    PlayerGroup? group,
-    bool onEight,
-  ) {
+  static List<BallState> legalTargets(List<BallState> balls, PlayerGroup? group, bool onEight) {
     final active = [
       for (final ball in balls)
         if (ball.active && !ball.isCue) ball,
@@ -61,10 +57,7 @@ class AiTable {
   }
 
   /// 对手的合法目标球：己方清台后对手要打黑八。
-  static List<BallState> opponentTargets(
-    List<BallState> balls,
-    PlayerGroup? group,
-  ) {
+  static List<BallState> opponentTargets(List<BallState> balls, PlayerGroup? group) {
     if (group == null) {
       return [
         for (final ball in balls)
@@ -84,19 +77,17 @@ class AiTable {
   }
 
   /// 评估母球 → 目标球 → 指定袋口的线路；不可行返回 null。
-  static AiLine? lineFor(
-    Vec2 cue,
-    BallState target,
-    int pocketIndex,
-    List<BallState> balls,
-  ) {
+  static AiLine? lineFor(Vec2 cue, BallState target, int pocketIndex, List<BallState> balls) {
     final pocket = TableGeometry.pockets[pocketIndex];
-    final pocketDirection = (pocket - target.position).normalized;
-    if (pocketDirection.lengthSquared < 0.5) return null;
+    final pdx = pocket.x - target.position.x;
+    final pdy = pocket.y - target.position.y;
+    final pocketLength = math.sqrt(pdx * pdx + pdy * pdy);
+    if (pocketLength < 1e-9) return null;
+    final dirX = pdx / pocketLength;
+    final dirY = pdy / pocketLength;
 
-    final ghost =
-        target.position -
-        pocketDirection * (TableGeometry.ballRadius * 2 + _ghostClearance);
+    const offset = TableGeometry.ballRadius * 2 + _ghostClearance;
+    final ghost = Vec2(target.position.x - dirX * offset, target.position.y - dirY * offset);
     if (ghost.x < 0 ||
         ghost.x > TableGeometry.width ||
         ghost.y < 0 ||
@@ -104,43 +95,35 @@ class AiTable {
       return null;
     }
 
-    final cut = directionOf(angleOf(cue, ghost)).dot(pocketDirection);
+    final angle = angleOf(cue, ghost);
+    final cut = math.cos(angle) * dirX + math.sin(angle) * dirY;
     if (cut < _minCut) return null;
-    if (pathBlocked(
-      from: cue,
-      to: ghost,
-      balls: balls,
-      ignore: {0, target.id},
-    )) {
+    if (pathBlocked(from: cue, to: ghost, balls: balls, ignoreA: 0, ignoreB: target.id)) {
       return null;
     }
-    if (pathBlocked(
-      from: target.position,
-      to: pocket,
-      balls: balls,
-      ignore: {target.id},
-    )) {
+    if (pathBlocked(from: target.position, to: pocket, balls: balls, ignoreA: target.id)) {
       return null;
     }
 
     final distance = cue.distanceTo(target.position);
-    return AiLine(
-      angle: angleOf(cue, ghost),
-      score: cut * 3.6 - distance * 0.35,
-    );
+    return AiLine(angle: angle, score: cut * 3.6 - distance * 0.35);
   }
 
-  /// 线段是否被其他球挡住；[ignore] 中的球不参与判定。
+  /// 线段是否被其他球挡住；[ignoreA] / [ignoreB] 指定的球不参与判定。
   static bool pathBlocked({
     required Vec2 from,
     required Vec2 to,
     required List<BallState> balls,
-    required Set<int> ignore,
+    int ignoreA = -1,
+    int ignoreB = -1,
   }) {
     const clearance = TableGeometry.ballRadius * 2 - 0.002;
+    const clearanceSquared = clearance * clearance;
     for (final ball in balls) {
-      if (!ball.active || ignore.contains(ball.id)) continue;
-      if (distanceToSegment(ball.position, from, to) < clearance) return true;
+      if (!ball.active || ball.id == ignoreA || ball.id == ignoreB) continue;
+      if (distanceSquaredToSegment(ball.position, from, to) < clearanceSquared) {
+        return true;
+      }
     }
     return false;
   }
@@ -162,18 +145,10 @@ class AiTable {
   }
 
   /// 对手下一杆的最佳线路分；越低越安全。
-  static double opponentThreat(
-    Vec2 cue,
-    List<BallState> targets,
-    List<BallState> balls,
-  ) {
+  static double opponentThreat(Vec2 cue, List<BallState> targets, List<BallState> balls) {
     var best = 0.0;
     for (final target in targets) {
-      for (
-        var pocketIndex = 0;
-        pocketIndex < TableGeometry.pockets.length;
-        pocketIndex++
-      ) {
+      for (var pocketIndex = 0; pocketIndex < TableGeometry.pockets.length; pocketIndex++) {
         final line = lineFor(cue, target, pocketIndex, balls);
         if (line != null && line.score > best) best = line.score;
       }
@@ -182,18 +157,15 @@ class AiTable {
   }
 
   /// 母球到对手目标球被完全遮挡的数量，用于给「藏球」加分。
-  static int hiddenTargets(
-    Vec2 cue,
-    List<BallState> targets,
-    List<BallState> balls,
-  ) {
+  static int hiddenTargets(Vec2 cue, List<BallState> targets, List<BallState> balls) {
     var hidden = 0;
     for (final target in targets) {
       if (pathBlocked(
         from: cue,
         to: target.position,
         balls: balls,
-        ignore: {0, target.id},
+        ignoreA: 0,
+        ignoreB: target.id,
       )) {
         hidden++;
       }

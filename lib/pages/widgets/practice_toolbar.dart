@@ -35,9 +35,7 @@ class PracticeToolbar extends StatelessWidget {
                 selected: item == selectedPreset,
                 leading: const Icon(Icons.adjust, size: 20),
                 title: Text(item.label),
-                trailing: item == selectedPreset
-                    ? const Icon(Icons.check, size: 20)
-                    : null,
+                trailing: item == selectedPreset ? const Icon(Icons.check, size: 20) : null,
                 onTap: () => Navigator.of(sheetContext).pop(item),
               ),
           ],
@@ -65,11 +63,7 @@ class PracticeToolbar extends StatelessWidget {
           onTap: onPreset == null ? null : () => _pickPreset(context),
         ),
         const SizedBox(width: 6),
-        _ToolChip(
-          icon: Icons.undo,
-          label: '重打',
-          onTap: canUndo ? onUndo : null,
-        ),
+        _ToolChip(icon: Icons.undo, label: '重打', onTap: canUndo ? onUndo : null),
       ],
     );
   }
@@ -111,11 +105,7 @@ class _ToolChip extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: foreground,
-                ),
+                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: foreground),
               ),
             ],
           ),

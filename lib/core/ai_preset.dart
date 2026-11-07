@@ -24,9 +24,6 @@ class AiPresetCode {
     final difficulty = AiDifficulty.byLabel(parts[1]);
     final strength = int.tryParse(parts[2]);
     if (difficulty == null || strength == null) return null;
-    return (
-      difficulty: difficulty,
-      strength: (strength / _scale).clamp(0.0, 1.0).toDouble(),
-    );
+    return (difficulty: difficulty, strength: (strength / _scale).clamp(0.0, 1.0).toDouble());
   }
 }

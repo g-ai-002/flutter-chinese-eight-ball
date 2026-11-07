@@ -31,10 +31,7 @@ class SettingsPage extends StatelessWidget {
             onSelected: settings.setDifficulty,
           ),
           if (settings.difficulty == AiDifficulty.custom)
-            AiStrengthRow(
-              value: settings.aiStrength,
-              onChanged: settings.setAiStrength,
-            ),
+            AiStrengthRow(value: settings.aiStrength, onChanged: settings.setAiStrength),
           AiPresetSection(settings: settings),
           SettingsChipTile<int>(
             label: '开球先后',
@@ -61,10 +58,7 @@ class SettingsPage extends StatelessWidget {
             value: settings.showAimGuide,
             onChanged: settings.setShowAimGuide,
           ),
-          settingsSkinTile(
-            selected: settings.tableSkin,
-            onSelected: settings.setTableSkin,
-          ),
+          settingsSkinTile(selected: settings.tableSkin, onSelected: settings.setTableSkin),
           const SizedBox(height: 10),
         ],
       ),
@@ -97,9 +91,9 @@ class SettingsPage extends StatelessWidget {
           SettingsLinkTile(
             title: '玩法规则',
             subtitle: '中式黑八规则与操作说明',
-            onTap: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
           ),
           SettingsLinkTile(
             title: '运行日志',
@@ -110,9 +104,7 @@ class SettingsPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
             child: Text(
               '${AppConstants.appName} v${AppConstants.version} · 本地运行 · 无需联网',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
             ),
           ),
         ],

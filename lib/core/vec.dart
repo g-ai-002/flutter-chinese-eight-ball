@@ -30,20 +30,16 @@ class Vec2 {
 
   double dot(Vec2 other) => x * other.x + y * other.y;
 
-  double cross(Vec2 other) => x * other.y - y * other.x;
+  double distanceTo(Vec2 other) => math.sqrt(distanceSquaredTo(other));
 
-  double distanceTo(Vec2 other) => (this - other).length;
-
-  double distanceSquaredTo(Vec2 other) => (this - other).lengthSquared;
+  double distanceSquaredTo(Vec2 other) {
+    final dx = x - other.x;
+    final dy = y - other.y;
+    return dx * dx + dy * dy;
+  }
 
   Vec2 clamp(double minX, double maxX, double minY, double maxY) =>
       Vec2(x.clamp(minX, maxX), y.clamp(minY, maxY));
-
-  Vec2 rotated(double radians) {
-    final cosA = math.cos(radians);
-    final sinA = math.sin(radians);
-    return Vec2(x * cosA - y * sinA, x * sinA + y * cosA);
-  }
 
   @override
   bool operator ==(Object other) =>
@@ -61,16 +57,22 @@ Vec2 directionOf(double angle) => Vec2(math.cos(angle), math.sin(angle));
 
 /// 两点连线的方向角，两点重合时返回 0。
 double angleOf(Vec2 from, Vec2 to) {
-  final delta = to - from;
-  if (delta.lengthSquared < 1e-12) return 0;
-  return math.atan2(delta.y, delta.x);
+  final dx = to.x - from.x;
+  final dy = to.y - from.y;
+  if (dx * dx + dy * dy < 1e-12) return 0;
+  return math.atan2(dy, dx);
 }
 
-/// 点到线段的最近距离，用于判断击球路线是否被其他球阻挡。
-double distanceToSegment(Vec2 point, Vec2 start, Vec2 end) {
-  final segment = end - start;
-  final lengthSquared = segment.lengthSquared;
-  if (lengthSquared < 1e-12) return point.distanceTo(start);
-  final t = ((point - start).dot(segment) / lengthSquared).clamp(0.0, 1.0);
-  return point.distanceTo(start + segment * t);
+/// 点到线段的最短距离平方，用于路线遮挡判定（不做开方、不建临时向量）。
+double distanceSquaredToSegment(Vec2 point, Vec2 start, Vec2 end) {
+  final sx = end.x - start.x;
+  final sy = end.y - start.y;
+  final lengthSquared = sx * sx + sy * sy;
+  final px = point.x - start.x;
+  final py = point.y - start.y;
+  if (lengthSquared < 1e-12) return px * px + py * py;
+  final t = ((px * sx + py * sy) / lengthSquared).clamp(0.0, 1.0);
+  final dx = px - sx * t;
+  final dy = py - sy * t;
+  return dx * dx + dy * dy;
 }

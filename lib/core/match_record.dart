@@ -41,8 +41,7 @@ class ReplayShot {
     if (potted.isNotEmpty) 'o': potted,
     'b': [
       for (final ball in balls)
-        if (ball.active)
-          [ball.id, _round(ball.position.x, 4), _round(ball.position.y, 4)],
+        if (ball.active) [ball.id, _round(ball.position.x, 4), _round(ball.position.y, 4)],
     ],
   };
 
@@ -118,8 +117,7 @@ class MatchRecord {
   int get shotCount => shots.length;
 
   /// 本场打进的目标球总数（不含母球）。
-  int get pottedTargets =>
-      shots.fold(0, (sum, shot) => sum + shot.pottedTargets);
+  int get pottedTargets => shots.fold(0, (sum, shot) => sum + shot.pottedTargets);
 
   bool get isVersusAi => mode == 'vsAi';
 
@@ -132,8 +130,7 @@ class MatchRecord {
   }
 
   /// 侧栏与列表用的副标题，例如「人机对战 · 进阶 · 共 12 杆」。
-  String get subtitle =>
-      '$modeLabel · ${isVersusAi ? difficultyLabel : '同屏轮流'} · 共 $shotCount 杆';
+  String get subtitle => '$modeLabel · ${isVersusAi ? difficultyLabel : '同屏轮流'} · 共 $shotCount 杆';
 
   /// 导出报告中的结果摘要（不含时间），列表与报告保持同一口径。
   String get resultSummary =>
@@ -157,9 +154,7 @@ class MatchRecord {
 
   static MatchRecord? fromJson(Object? raw) {
     if (raw is! Map) return null;
-    final createdAt = DateTime.tryParse(
-      raw['t'] is String ? raw['t'] as String : '',
-    );
+    final createdAt = DateTime.tryParse(raw['t'] is String ? raw['t'] as String : '');
     if (createdAt == null) return null;
     final shots = <ReplayShot>[];
     final rawShots = raw['s'];

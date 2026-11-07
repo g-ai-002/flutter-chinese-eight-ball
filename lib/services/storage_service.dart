@@ -27,9 +27,7 @@ class StorageService {
     return prefs;
   }
 
-  Future<void> _write(
-    Future<bool> Function(SharedPreferences prefs) action,
-  ) async {
+  Future<void> _write(Future<bool> Function(SharedPreferences prefs) action) async {
     try {
       await action(_p);
     } catch (_) {}
@@ -61,16 +59,14 @@ class StorageService {
       _write((p) => p.setBool(AppConstants.prefKeyHaptics, value));
 
   /// AI 难度，未设置或未知值回退到进阶。
-  AiDifficulty get difficulty =>
-      AiDifficulty.stored(_p.getString(AppConstants.prefKeyDifficulty));
+  AiDifficulty get difficulty => AiDifficulty.stored(_p.getString(AppConstants.prefKeyDifficulty));
 
   Future<void> setDifficulty(AiDifficulty value) =>
       _write((p) => p.setString(AppConstants.prefKeyDifficulty, value.name));
 
   /// 自定义 AI 强度，0~1，默认中等。
-  double get aiStrength => (_p.getDouble(AppConstants.prefKeyAiStrength) ?? 0.5)
-      .clamp(0.0, 1.0)
-      .toDouble();
+  double get aiStrength =>
+      (_p.getDouble(AppConstants.prefKeyAiStrength) ?? 0.5).clamp(0.0, 1.0).toDouble();
 
   Future<void> setAiStrength(double value) =>
       _write((p) => p.setDouble(AppConstants.prefKeyAiStrength, value));
@@ -81,8 +77,7 @@ class StorageService {
       _write((p) => p.setInt(AppConstants.prefKeyHumanSide, value));
 
   /// 最近对局记录的 JSON，解析与裁剪由 `MatchHistory` 负责。
-  String? get matchHistoryJson =>
-      _p.getString(AppConstants.prefKeyMatchHistory);
+  String? get matchHistoryJson => _p.getString(AppConstants.prefKeyMatchHistory);
   Future<void> setMatchHistoryJson(String value) =>
       _write((p) => p.setString(AppConstants.prefKeyMatchHistory, value));
 }

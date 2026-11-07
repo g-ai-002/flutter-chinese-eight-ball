@@ -16,10 +16,7 @@ class StatsDifficultyList extends StatelessWidget {
       return const StatsSectionHint('还没有人机对局');
     }
     return Column(
-      children: [
-        for (final difficulty in difficulties)
-          _DifficultyRow(difficulty: difficulty),
-      ],
+      children: [for (final difficulty in difficulties) _DifficultyRow(difficulty: difficulty)],
     );
   }
 }

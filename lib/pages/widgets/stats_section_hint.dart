@@ -13,9 +13,7 @@ class StatsSectionHint extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
       child: Text(
         text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
       ),
     );
   }

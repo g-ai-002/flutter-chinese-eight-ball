@@ -28,8 +28,7 @@ class MatchTrend {
   const MatchTrend(this.points);
 
   factory MatchTrend.of(Iterable<MatchRecord> records, {int limit = 8}) {
-    final recent = records.toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final recent = records.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return MatchTrend([
       for (final record in recent.take(limit).toList().reversed)
         TrendPoint(
@@ -48,9 +47,7 @@ class MatchTrend {
 
   /// 最近 3 场（不足 3 场取全部）的合计进球率，避免单场样本过小导致波动过大。
   double get recentPotRate {
-    final recent = points.length <= 3
-        ? points
-        : points.sublist(points.length - 3);
+    final recent = points.length <= 3 ? points : points.sublist(points.length - 3);
     final shots = recent.fold(0, (sum, point) => sum + point.shots);
     final potted = recent.fold(0, (sum, point) => sum + point.potted);
     return potRateOf(shots, potted);
@@ -81,11 +78,7 @@ class DailyPoint {
 class DailyTrend {
   const DailyTrend(this.points);
 
-  factory DailyTrend.of(
-    Iterable<MatchRecord> records, {
-    int days = 7,
-    DateTime? now,
-  }) {
+  factory DailyTrend.of(Iterable<MatchRecord> records, {int days = 7, DateTime? now}) {
     final today = _dateOnly(now ?? DateTime.now());
     final byDay = <DateTime, List<MatchRecord>>{};
     for (final record in records) {
@@ -112,5 +105,4 @@ DailyPoint _dayPoint(DateTime date, Map<DateTime, List<MatchRecord>> byDay) {
   );
 }
 
-DateTime _dateOnly(DateTime value) =>
-    DateTime(value.year, value.month, value.day);
+DateTime _dateOnly(DateTime value) => DateTime(value.year, value.month, value.day);

@@ -17,11 +17,7 @@ void drawDashedLine(
   var distance = 0.0;
   while (distance < length) {
     final segmentEnd = math.min(distance + dash, length);
-    canvas.drawLine(
-      start + direction * distance,
-      start + direction * segmentEnd,
-      paint,
-    );
+    canvas.drawLine(start + direction * distance, start + direction * segmentEnd, paint);
     distance += dash + gap;
   }
 }

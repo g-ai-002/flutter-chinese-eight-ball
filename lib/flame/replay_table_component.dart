@@ -27,10 +27,7 @@ class ReplayTableComponent extends PositionComponent {
     if (player.pendingEffects.isEmpty) return;
     for (final event in player.pendingEffects) {
       if (event is! BallPocketed) continue;
-      _scene.addPot(
-        event,
-        player.balls.firstWhere((item) => item.id == event.ballId),
-      );
+      _scene.addPot(event, player.balls.firstWhere((item) => item.id == event.ballId));
     }
     player.pendingEffects.clear();
   }

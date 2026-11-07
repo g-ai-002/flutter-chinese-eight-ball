@@ -10,9 +10,7 @@ class BallSpec {
   /// 按球号还原静态信息：0 母球、8 黑八、1-7 全色、9-15 花色。
   factory BallSpec.fromId(int id) {
     if (id == 0) return kCueBall;
-    final kind = id == 8
-        ? BallKind.eight
-        : (id < 8 ? BallKind.solid : BallKind.stripe);
+    final kind = id == 8 ? BallKind.eight : (id < 8 ? BallKind.solid : BallKind.stripe);
     return BallSpec(id, kind);
   }
 
@@ -45,8 +43,7 @@ class BallState {
   double get speed => velocity.length;
 
   BallState clone() =>
-      BallState(spec: spec, position: position, velocity: velocity)
-        ..active = active;
+      BallState(spec: spec, position: position, velocity: velocity)..active = active;
 
   static List<BallState> cloneAll(Iterable<BallState> balls) => [
     for (final ball in balls) ball.clone(),
@@ -63,6 +60,5 @@ enum PlayerGroup {
   final BallKind kind;
   final String label;
 
-  static PlayerGroup ofBall(BallKind kind) =>
-      kind == BallKind.solid ? solids : stripes;
+  static PlayerGroup ofBall(BallKind kind) => kind == BallKind.solid ? solids : stripes;
 }

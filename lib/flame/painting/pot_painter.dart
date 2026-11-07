@@ -35,9 +35,7 @@ class PotPainter {
     final alpha = (1 - t).clamp(0.0, 1.0);
 
     canvas.save();
-    canvas.clipPath(
-      Path()..addOval(Rect.fromCircle(center: center, radius: radius)),
-    );
+    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius)));
     if (animation.kind == BallKind.stripe) {
       canvas.drawCircle(
         center,
@@ -45,19 +43,11 @@ class PotPainter {
         Paint()..color = const Color(0xFFF8F4E8).withValues(alpha: alpha),
       );
       canvas.drawRect(
-        Rect.fromCenter(
-          center: center,
-          width: radius * 2.2,
-          height: radius * 1.1,
-        ),
+        Rect.fromCenter(center: center, width: radius * 2.2, height: radius * 1.1),
         Paint()..color = color.withValues(alpha: alpha),
       );
     } else {
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()..color = color.withValues(alpha: alpha),
-      );
+      canvas.drawCircle(center, radius, Paint()..color = color.withValues(alpha: alpha));
     }
     canvas.restore();
   }

@@ -20,8 +20,7 @@ class TableLayout {
 
   /// 球台整体（含木框）的宽高比，页面按此比例预留空间。
   static const double aspectRatio =
-      (TableGeometry.width + railWidth * 2) /
-      (TableGeometry.height + railWidth * 2);
+      (TableGeometry.width + railWidth * 2) / (TableGeometry.height + railWidth * 2);
 
   /// 在可用空间内按 [aspectRatio] 计算球台尺寸，空间过小时保留最小宽度。
   static Size fit(Size available, {double minWidth = 320}) {
@@ -34,23 +33,22 @@ class TableLayout {
   late final double scale;
   late final Offset origin;
 
-  double get ballRadius => TableGeometry.ballRadius * scale;
-  double get pocketRadius => TableGeometry.pocketRadius * scale;
+  late final double ballRadius = TableGeometry.ballRadius * scale;
+  late final double pocketRadius = TableGeometry.pocketRadius * scale;
 
-  Offset toCanvas(Vec2 point) =>
-      Offset(origin.dx + point.x * scale, origin.dy + point.y * scale);
+  Offset toCanvas(Vec2 point) => Offset(origin.dx + point.x * scale, origin.dy + point.y * scale);
 
   Vec2 toTable(Offset point) =>
       Vec2((point.dx - origin.dx) / scale, (point.dy - origin.dy) / scale);
 
-  Rect get surfaceRect => Rect.fromLTWH(
+  late final Rect surfaceRect = Rect.fromLTWH(
     origin.dx,
     origin.dy,
     TableGeometry.width * scale,
     TableGeometry.height * scale,
   );
 
-  Rect get tableRect => Rect.fromLTWH(
+  late final Rect tableRect = Rect.fromLTWH(
     origin.dx - railWidth * scale,
     origin.dy - railWidth * scale,
     (TableGeometry.width + railWidth * 2) * scale,

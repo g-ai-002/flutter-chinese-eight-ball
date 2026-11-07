@@ -28,9 +28,7 @@ class PlayerBar extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: active
-            ? colors.primaryContainer.withValues(alpha: 0.5)
-            : colors.surface,
+        color: active ? colors.primaryContainer.withValues(alpha: 0.5) : colors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: active ? colors.primary : colors.outline,
@@ -42,11 +40,7 @@ class PlayerBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
-                isAi ? Icons.smart_toy_outlined : Icons.person_outline,
-                size: 18,
-                color: accent,
-              ),
+              Icon(isAi ? Icons.smart_toy_outlined : Icons.person_outline, size: 18, color: accent),
               const SizedBox(width: 6),
               Text(
                 name,
@@ -59,16 +53,12 @@ class PlayerBar extends StatelessWidget {
                 child: Text(
                   subtitle,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
                 ),
               ),
               Text(
                 '剩 ${remainingBalls.length} 颗',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
+                style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
               ),
             ],
           ),
@@ -77,9 +67,7 @@ class PlayerBar extends StatelessWidget {
             Wrap(
               spacing: 4,
               runSpacing: 4,
-              children: [
-                for (final id in remainingBalls) BallChip(id: id, size: 18),
-              ],
+              children: [for (final id in remainingBalls) BallChip(id: id, size: 18)],
             ),
           ],
         ],

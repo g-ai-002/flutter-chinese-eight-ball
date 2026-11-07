@@ -118,11 +118,7 @@ ThemeData _buildBase({
         elevation: 0,
         minimumSize: const Size(0, 46),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        textStyle: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          fontFamily: fontFamily,
-        ),
+        textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, fontFamily: fontFamily),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -130,11 +126,7 @@ ThemeData _buildBase({
         minimumSize: const Size(0, 46),
         side: BorderSide(color: colorScheme.outline),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        textStyle: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          fontFamily: fontFamily,
-        ),
+        textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, fontFamily: fontFamily),
       ),
     ),
     chipTheme: ChipThemeData(
@@ -143,11 +135,7 @@ ThemeData _buildBase({
       shape: const StadiumBorder(),
       backgroundColor: colorScheme.surface,
       selectedColor: colorScheme.primaryContainer,
-      labelStyle: TextStyle(
-        fontSize: 13,
-        color: colorScheme.onSurface,
-        fontFamily: fontFamily,
-      ),
+      labelStyle: TextStyle(fontSize: 13, color: colorScheme.onSurface, fontFamily: fontFamily),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     ),
     sliderTheme: const SliderThemeData(

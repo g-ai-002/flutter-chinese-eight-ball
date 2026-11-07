@@ -38,14 +38,7 @@ class TableGeometry {
   ];
 
   /// 袋口名称，顺序与 [pockets] 一致，用于指袋提示。
-  static const List<String> pocketNames = [
-    '左上角袋',
-    '上中袋',
-    '右上角袋',
-    '左下角袋',
-    '下中袋',
-    '右下角袋',
-  ];
+  static const List<String> pocketNames = ['左上角袋', '上中袋', '右上角袋', '左下角袋', '下中袋', '右下角袋'];
 
   /// 离指定坐标最近的袋口编号。
   static int nearestPocket(Vec2 point) {
@@ -89,9 +82,7 @@ class TableGeometry {
           BallState(
             spec: BallSpec(
               id,
-              id == 8
-                  ? BallKind.eight
-                  : (id < 8 ? BallKind.solid : BallKind.stripe),
+              id == 8 ? BallKind.eight : (id < 8 ? BallKind.solid : BallKind.stripe),
             ),
             position: Vec2(x, y),
           ),
@@ -107,10 +98,8 @@ class TableGeometry {
       isValidCuePlacement(position) && position.x <= headStringX;
 
   /// 母球自由球摆放合法性：完全在台面内、不与其他球重叠、不压在袋口。
-  static bool isValidCuePlacement(
-    Vec2 position, {
-    Iterable<BallState> obstacles = const [],
-  }) => isValidBallPlacement(position, obstacles: obstacles);
+  static bool isValidCuePlacement(Vec2 position, {Iterable<BallState> obstacles = const []}) =>
+      isValidBallPlacement(position, obstacles: obstacles);
 
   /// 任意球（含母球）的摆放合法性，用于练习模式的自由摆球。
   ///
@@ -155,8 +144,7 @@ class TableGeometry {
     for (var radius = 0.02; radius <= 0.6; radius += 0.02) {
       for (var step = 0; step < 24; step++) {
         final angle = step * math.pi / 12;
-        final candidate =
-            desired + Vec2(math.cos(angle), math.sin(angle)) * radius;
+        final candidate = desired + Vec2(math.cos(angle), math.sin(angle)) * radius;
         if (valid(candidate)) return candidate;
       }
     }

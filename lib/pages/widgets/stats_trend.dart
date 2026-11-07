@@ -26,9 +26,7 @@ class StatsTrend extends StatelessWidget {
               Expanded(
                 child: Text(
                   '近 ${points.length} 场 · 柱高为进球率',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
                 ),
               ),
               Text(
@@ -48,17 +46,14 @@ class StatsTrend extends StatelessWidget {
                   heightFactor: point.potRate,
                   marker: _markerColor(point, colors),
                   topLabel: '${(point.potRate * 100).round()}',
-                  bottomLabel:
-                      '${point.createdAt.month}/${point.createdAt.day}',
+                  bottomLabel: '${point.createdAt.month}/${point.createdAt.day}',
                 ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             '圆点：人机胜 / 负 · 旧 → 新',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
           ),
         ],
       ),

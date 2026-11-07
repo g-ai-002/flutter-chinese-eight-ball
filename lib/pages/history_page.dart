@@ -65,14 +65,11 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   void _openReplay(MatchRecord record) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
   }
 
   void _openStats() {
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const StatsPage()));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const StatsPage()));
   }
 
   Future<void> _export(List<MatchRecord> records) async {
@@ -187,9 +184,7 @@ class _HistoryFooter extends StatelessWidget {
       child: Text(
         '最多保留最近 ${MatchHistory.maxRecords} 场对局，记录只保存在本机。',
         textAlign: TextAlign.center,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
       ),
     );
   }

@@ -54,15 +54,11 @@ class AiSafety {
   }
 
   /// 完全找不到防守线路时的兜底：轻碰最近合法球，避免空杆犯规。
-  AiShot fallback({
-    required List<BallState> balls,
-    required List<BallState> targets,
-  }) {
+  AiShot fallback({required List<BallState> balls, required List<BallState> targets}) {
     final cue = balls.firstWhere((ball) => ball.isCue);
     final target = targets.reduce(
       (best, ball) =>
-          cue.position.distanceTo(ball.position) <
-              cue.position.distanceTo(best.position)
+          cue.position.distanceTo(ball.position) < cue.position.distanceTo(best.position)
           ? ball
           : best,
     );
@@ -80,9 +76,7 @@ class AiSafety {
     final direction = (target.position - cue).normalized;
     if (direction.lengthSquared < 0.5) return;
     yield angleOf(cue, target.position);
-    final ghost =
-        target.position +
-        direction.perpendicular * (TableGeometry.ballRadius * 0.9);
+    final ghost = target.position + direction.perpendicular * (TableGeometry.ballRadius * 0.9);
     yield angleOf(cue, ghost);
   }
 

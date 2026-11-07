@@ -42,10 +42,7 @@ class HomePage extends StatelessWidget {
             builder: (context, constraints) {
               final twoColumns = constraints.maxWidth >= 620;
               final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
-              final contentWidth = math.min(
-                constraints.maxWidth - horizontal * 2,
-                760.0,
-              );
+              final contentWidth = math.min(constraints.maxWidth - horizontal * 2, 760.0);
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(horizontal, 14, horizontal, 24),
                 child: Center(
@@ -63,10 +60,7 @@ class HomePage extends StatelessWidget {
                             runSpacing: 12,
                             children: [
                               for (final entry in entries)
-                                SizedBox(
-                                  width: (contentWidth - 12) / 2,
-                                  child: entry,
-                                ),
+                                SizedBox(width: (contentWidth - 12) / 2, child: entry),
                             ],
                           )
                         else
@@ -97,11 +91,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  void _startGame(
-    BuildContext context,
-    SettingsProvider settings,
-    GameMode mode,
-  ) => _openPage(
+  void _startGame(BuildContext context, SettingsProvider settings, GameMode mode) => _openPage(
     context,
     GamePage(
       mode: mode,
@@ -111,61 +101,39 @@ class HomePage extends StatelessWidget {
     ),
   );
 
-  List<Widget> _entries(
-    BuildContext context,
-    SettingsProvider settings,
-    ColorScheme colors,
-  ) => [
+  List<Widget> _entries(BuildContext context, SettingsProvider settings, ColorScheme colors) => [
     EntryTile(
-      leading: EntryBadge(
-        icon: Icons.smart_toy_outlined,
-        accent: colors.primary,
-      ),
+      leading: EntryBadge(icon: Icons.smart_toy_outlined, accent: colors.primary),
       title: GameMode.vsAi.label,
       subtitle: '四档 AI · 可自定义强度',
       onTap: () => _startGame(context, settings, GameMode.vsAi),
     ),
     EntryTile(
-      leading: EntryBadge(
-        icon: Icons.people_alt_outlined,
-        accent: colors.tertiary,
-      ),
+      leading: EntryBadge(icon: Icons.people_alt_outlined, accent: colors.tertiary),
       title: GameMode.twoPlayers.label,
       subtitle: '同屏轮流 · 面对面切磋',
       onTap: () => _startGame(context, settings, GameMode.twoPlayers),
     ),
     EntryTile(
-      leading: EntryBadge(
-        icon: Icons.adjust_outlined,
-        accent: colors.secondary,
-      ),
+      leading: EntryBadge(icon: Icons.adjust_outlined, accent: colors.secondary),
       title: GameMode.practice.label,
       subtitle: '任意摆球 · 重打同一杆',
       onTap: () => _startGame(context, settings, GameMode.practice),
     ),
     EntryTile(
-      leading: EntryBadge(
-        icon: Icons.movie_filter_outlined,
-        accent: colors.primary,
-      ),
+      leading: EntryBadge(icon: Icons.movie_filter_outlined, accent: colors.primary),
       title: '最近对局',
       subtitle: '逐杆回放 · 复盘每一杆',
       onTap: () => _openPage(context, const HistoryPage()),
     ),
     EntryTile(
-      leading: EntryBadge(
-        icon: Icons.query_stats_outlined,
-        accent: colors.tertiary,
-      ),
+      leading: EntryBadge(icon: Icons.query_stats_outlined, accent: colors.tertiary),
       title: '数据统计',
       subtitle: '胜率 · 场均杆数 · 进球表现',
       onTap: () => _openPage(context, const StatsPage()),
     ),
     EntryTile(
-      leading: const EntryBadge(
-        icon: Icons.menu_book_outlined,
-        accent: appGold,
-      ),
+      leading: const EntryBadge(icon: Icons.menu_book_outlined, accent: appGold),
       title: '玩法规则',
       subtitle: '中式黑八规则与操作说明',
       onTap: () => _openPage(context, const HelpPage()),
@@ -223,11 +191,7 @@ class _TopBar extends StatelessWidget {
               Text(
                 AppConstants.appNameEn,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 8.5,
-                  letterSpacing: 1.2,
-                  color: colors.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 8.5, letterSpacing: 1.2, color: colors.onSurfaceVariant),
               ),
             ],
           ),
@@ -235,10 +199,7 @@ class _TopBar extends StatelessWidget {
         IconButton(
           tooltip: darkMode ? '切换浅色' : '切换深色',
           onPressed: () => settings.setDarkMode(!darkMode),
-          icon: Icon(
-            darkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            size: 21,
-          ),
+          icon: Icon(darkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined, size: 21),
         ),
         IconButton(
           tooltip: '设置',
@@ -293,9 +254,7 @@ class _Hero extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           '一杆一世界，清台见真章',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colors.onSurfaceVariant,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
         ),
       ],
     );

@@ -15,8 +15,24 @@ import 'paint_utils.dart';
 class TablePainter {
   TextPainter? _brandPainter;
   double _brandScale = 0;
+  ui.Picture? _picture;
+  Size _pictureSize = Size.zero;
+  TableSkin? _pictureSkin;
 
+  /// 静态台面只在尺寸或配色变化时重录一次，后续帧直接复用显示列表。
   void paint(Canvas canvas, TableLayout layout, TableSkin skin) {
+    if (_picture == null || _pictureSize != layout.size || _pictureSkin != skin) {
+      _picture?.dispose();
+      final recorder = ui.PictureRecorder();
+      _paintTable(Canvas(recorder), layout, skin);
+      _picture = recorder.endRecording();
+      _pictureSize = layout.size;
+      _pictureSkin = skin;
+    }
+    canvas.drawPicture(_picture!);
+  }
+
+  void _paintTable(Canvas canvas, TableLayout layout, TableSkin skin) {
     _paintRails(canvas, layout, skin);
     _paintCloth(canvas, layout, skin);
     _paintMarkings(canvas, layout, skin);
@@ -98,11 +114,7 @@ class TablePainter {
 
     final spotPaint = Paint()..color = skin.marking;
     for (final spot in [TableGeometry.footSpot, TableGeometry.headSpot]) {
-      canvas.drawCircle(
-        layout.toCanvas(spot),
-        math.max(1.2, layout.scale * 0.0035),
-        spotPaint,
-      );
+      canvas.drawCircle(layout.toCanvas(spot), math.max(1.2, layout.scale * 0.0035), spotPaint);
     }
   }
 
@@ -113,11 +125,7 @@ class TablePainter {
       canvas.drawCircle(
         center,
         radius,
-        Paint()
-          ..shader = ui.Gradient.radial(center, radius, [
-            Colors.black,
-            skin.pocket,
-          ]),
+        Paint()..shader = ui.Gradient.radial(center, radius, [Colors.black, skin.pocket]),
       );
       canvas.drawCircle(
         center,

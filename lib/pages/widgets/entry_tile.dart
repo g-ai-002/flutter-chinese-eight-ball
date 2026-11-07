@@ -43,18 +43,12 @@ class EntryTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: colors.onSurfaceVariant,
-              ),
+              Icon(Icons.chevron_right, size: 20, color: colors.onSurfaceVariant),
             ],
           ),
         ),

@@ -50,11 +50,7 @@ class MatchRules {
 
   /// 判定一杆的结果。[onEight] 表示击球前是否已经清完本方花色，
   /// [calledPocket] 是攻打黑八时指定的袋口编号（0-5）。
-  ShotRuling apply(
-    ShotOutcome outcome, {
-    required bool onEight,
-    int? calledPocket,
-  }) {
+  ShotRuling apply(ShotOutcome outcome, {required bool onEight, int? calledPocket}) {
     shotNumber++;
     final shooter = current;
     final wasBreak = isBreak;
@@ -63,12 +59,7 @@ class MatchRules {
     // 开球时黑八落袋不计胜负，重新摆球后由同一球手再次开球。
     if (wasBreak && outcome.eightPotted) {
       ballInHand = false;
-      return const ShotRuling(
-        foul: false,
-        keepTurn: true,
-        message: '开球黑八落袋，重新摆球开球',
-        rerack: true,
-      );
+      return const ShotRuling(foul: false, keepTurn: true, message: '开球黑八落袋，重新摆球开球', rerack: true);
     }
 
     final foulReason = _foulReason(outcome, shooter, onEight);
@@ -94,8 +85,7 @@ class MatchRules {
     required int? calledPocket,
   }) {
     final foul = foulReason != null;
-    final pocketMatched =
-        calledPocket != null && outcome.pocketOf(8) == calledPocket;
+    final pocketMatched = calledPocket != null && outcome.pocketOf(8) == calledPocket;
     final win = onEight && !foul && !outcome.cuePotted && pocketMatched;
 
     over = true;
@@ -151,11 +141,7 @@ class MatchRules {
 
     if (_pottedOwnBall(outcome, ownGroup)) {
       final groupText = assigned ? ' · 本局目标：${ownGroup!.label}' : '';
-      return ShotRuling(
-        foul: false,
-        keepTurn: true,
-        message: '进球，继续击球$groupText',
-      );
+      return ShotRuling(foul: false, keepTurn: true, message: '进球，继续击球$groupText');
     }
 
     current = opponentOf(shooter);
@@ -190,9 +176,7 @@ class MatchRules {
   String? _foulReason(ShotOutcome outcome, int shooter, bool onEight) {
     final contactReason = _contactFoulReason(outcome, shooter, onEight);
     if (contactReason != null) return contactReason;
-    if (!outcome.anyPotted &&
-        outcome.firstContact != null &&
-        !outcome.cushionAfterContact) {
+    if (!outcome.anyPotted && outcome.firstContact != null && !outcome.cushionAfterContact) {
       return '碰撞后无球碰库';
     }
     return null;

@@ -40,10 +40,7 @@ class ReplayShotOverlay extends StatelessWidget {
             result,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white,
-              height: 1.3,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white, height: 1.3),
           ),
         ],
       ),

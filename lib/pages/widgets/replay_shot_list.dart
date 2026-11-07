@@ -26,8 +26,7 @@ class ReplayShotList extends StatelessWidget {
       scrollDirection: horizontal ? Axis.horizontal : Axis.vertical,
       padding: const EdgeInsets.symmetric(vertical: 2),
       itemCount: record.shots.length,
-      separatorBuilder: (_, _) =>
-          SizedBox(width: horizontal ? 8 : 0, height: horizontal ? 0 : 6),
+      separatorBuilder: (_, _) => SizedBox(width: horizontal ? 8 : 0, height: horizontal ? 0 : 6),
       itemBuilder: (context, index) => _ShotTile(
         shot: record.shots[index],
         index: index,
@@ -56,9 +55,7 @@ class ReplayShotList extends StatelessWidget {
               const Spacer(),
               Text(
                 '共 ${record.shotCount} 杆',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
+                style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
               ),
             ],
           ),
@@ -94,9 +91,7 @@ class _ShotTile extends StatelessWidget {
     return SizedBox(
       width: width,
       child: Material(
-        color: active
-            ? colors.primaryContainer.withValues(alpha: 0.6)
-            : colors.surface,
+        color: active ? colors.primaryContainer.withValues(alpha: 0.6) : colors.surface,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
@@ -119,9 +114,7 @@ class _ShotTile extends StatelessWidget {
                   height: 24,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: active
-                        ? colors.primary
-                        : colors.surfaceContainerHighest,
+                    color: active ? colors.primary : colors.surfaceContainerHighest,
                     shape: BoxShape.circle,
                   ),
                   child: Text(
@@ -129,9 +122,7 @@ class _ShotTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: active
-                          ? colors.onPrimary
-                          : colors.onSurfaceVariant,
+                      color: active ? colors.onPrimary : colors.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -155,9 +146,7 @@ class _ShotTile extends StatelessWidget {
                                 '打进 ${potted.map((id) => '#$id').join('、')}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: appGold,
-                                ),
+                                style: theme.textTheme.labelSmall?.copyWith(color: appGold),
                               ),
                             ),
                           ],

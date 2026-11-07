@@ -32,12 +32,7 @@ class BallChip extends StatelessWidget {
             ? LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFFF8F4E8),
-                  base,
-                  base,
-                  const Color(0xFFF8F4E8),
-                ],
+                colors: [const Color(0xFFF8F4E8), base, base, const Color(0xFFF8F4E8)],
                 stops: const [0, 0.28, 0.72, 1],
               )
             : RadialGradient(
@@ -54,10 +49,7 @@ class BallChip extends StatelessWidget {
         width: size * 0.5,
         height: size * 0.5,
         alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF8F4E8),
-          shape: BoxShape.circle,
-        ),
+        decoration: const BoxDecoration(color: Color(0xFFF8F4E8), shape: BoxShape.circle),
         child: Text(
           '$id',
           style: TextStyle(

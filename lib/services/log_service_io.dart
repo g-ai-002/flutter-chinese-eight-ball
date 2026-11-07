@@ -38,10 +38,7 @@ class LogService {
     _earlyBuffer.clear();
   }
 
-  Future<void> _init(
-    Future<Directory> Function()? logRoot,
-    DateTime Function()? clock,
-  ) async {
+  Future<void> _init(Future<Directory> Function()? logRoot, DateTime Function()? clock) async {
     if (_initialized) return;
     if (clock != null) _now = clock;
     if (logRoot != null) {
@@ -64,10 +61,7 @@ class LogService {
       }
       _earlyBuffer.clear();
     }
-    _write(
-      'INFO',
-      '==== LogService 已初始化, 日志文件: ${_logFile?.path ?? '内存模式'} ====',
-    );
+    _write('INFO', '==== LogService 已初始化, 日志文件: ${_logFile?.path ?? '内存模式'} ====');
   }
 
   static String get logFilePath => _instance?._logFile?.path ?? '';
@@ -84,11 +78,7 @@ class LogService {
   static void _log(String level, String message) {
     final inst = _instance;
     if (inst == null || !inst._initialized) {
-      final line = formatLogLine(
-        inst?._now() ?? DateTime.now(),
-        level,
-        message,
-      );
+      final line = formatLogLine(inst?._now() ?? DateTime.now(), level, message);
       _earlyBuffer.add(line);
       if (_earlyBuffer.length > _maxEarlyLines) _earlyBuffer.removeAt(0);
       return;
@@ -135,9 +125,7 @@ class LogService {
     if (dir == null) return null;
     try {
       final now = _now();
-      final file = File(
-        '${dir.path}${Platform.pathSeparator}app_${formatDateKey(now)}.log',
-      );
+      final file = File('${dir.path}${Platform.pathSeparator}app_${formatDateKey(now)}.log');
       if (!file.existsSync()) file.createSync(recursive: true);
       return file;
     } catch (_) {
@@ -156,9 +144,7 @@ class LogService {
       var index = 1;
       File backup;
       do {
-        backup = File(
-          '${parent.path}${Platform.pathSeparator}${baseName}_$index.log',
-        );
+        backup = File('${parent.path}${Platform.pathSeparator}${baseName}_$index.log');
         index++;
       } while (backup.existsSync());
       file.renameSync(backup.path);

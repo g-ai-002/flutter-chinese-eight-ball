@@ -32,8 +32,7 @@ class GameSidePanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final player
-              in (controller.isPractice ? const [0] : const [0, 1])) ...[
+          for (final player in (controller.isPractice ? const [0] : const [0, 1])) ...[
             PlayerBar(
               name: controller.playerName(player),
               subtitle: _targetLabel(player),
@@ -53,9 +52,7 @@ class GameSidePanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          for (final line in controller.log.reversed.take(
-            AppConstants.maxVisibleLog,
-          ))
+          for (final line in controller.log.reversed.take(AppConstants.maxVisibleLog))
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
@@ -63,9 +60,7 @@ class GameSidePanel extends StatelessWidget {
                 children: [
                   Text(
                     '·',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -84,12 +79,8 @@ class GameSidePanel extends StatelessWidget {
           PowerControl(
             power: controller.power,
             onPowerChanged: controller.setPower,
-            onAimLeft: controller.canAim
-                ? () => controller.adjustAim(-0.006)
-                : null,
-            onAimRight: controller.canAim
-                ? () => controller.adjustAim(0.006)
-                : null,
+            onAimLeft: controller.canAim ? () => controller.adjustAim(-0.006) : null,
+            onAimRight: controller.canAim ? () => controller.adjustAim(0.006) : null,
             onShoot: controller.shoot,
             canShoot: controller.canShoot,
             hint: hint,
@@ -107,9 +98,9 @@ class GameSidePanel extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const HelpPage()),
-                  ),
+                  onPressed: () =>
+                      Navigator.of(context)
+                          .push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
                   icon: const Icon(Icons.menu_book_outlined, size: 18),
                   label: const Text('规则'),
                 ),
@@ -120,9 +111,7 @@ class GameSidePanel extends StatelessWidget {
           Text(
             '瞄准 ${formatAngle(controller.aimAngle)}',
             textAlign: TextAlign.center,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
           ),
         ],
       ),
@@ -151,12 +140,7 @@ class GameSidePanel extends StatelessWidget {
             style: theme.textTheme.titleSmall,
           ),
           const SizedBox(height: 4),
-          Text(
-            hint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
-          ),
+          Text(hint, style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
           if (controller.rules.ballInHand) ...[
             const SizedBox(height: 6),
             Row(
@@ -165,9 +149,7 @@ class GameSidePanel extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   '自由球，可任意摆放母球',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colors.primary,
-                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(color: colors.primary),
                 ),
               ],
             ),
@@ -183,9 +165,7 @@ class GameSidePanel extends StatelessWidget {
     if (rules.tableOpen) return '开放球台 · 首球定组';
     final group = rules.groupOf(player);
     if (group == null) return '待定';
-    final cleared = !controller.balls.any(
-      (ball) => ball.active && ball.kind == group.kind,
-    );
+    final cleared = !controller.balls.any((ball) => ball.active && ball.kind == group.kind);
     return cleared ? '${group.label} · 攻打黑八' : '目标：${group.label}球';
   }
 

@@ -31,9 +31,7 @@ class ReplaySummaryBar extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            record.playerWin
-                ? Icons.emoji_events_outlined
-                : Icons.sports_bar_outlined,
+            record.playerWin ? Icons.emoji_events_outlined : Icons.sports_bar_outlined,
             size: 22,
             color: record.playerWin ? appGold : colors.primary,
           ),
@@ -48,9 +46,7 @@ class ReplaySummaryBar extends StatelessWidget {
                   '${record.subtitle}${compact ? '' : ' · ${record.endReason}'}',
                   maxLines: compact ? 1 : 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -58,9 +54,7 @@ class ReplaySummaryBar extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             '${player.displayIndex} / ${record.shotCount} 杆',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
           ),
         ],
       ),

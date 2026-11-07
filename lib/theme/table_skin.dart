@@ -66,10 +66,8 @@ const List<TableSkin> kTableSkins = [
   ),
 ];
 
-TableSkin tableSkinOf(String? id) => kTableSkins.firstWhere(
-  (skin) => skin.id == id,
-  orElse: () => kTableSkins.first,
-);
+TableSkin tableSkinOf(String? id) =>
+    kTableSkins.firstWhere((skin) => skin.id == id, orElse: () => kTableSkins.first);
 
 /// 球色按中式黑八标准配色，9-15 号沿用对应全色球的颜色。
 Color ballColorOf(int id) {

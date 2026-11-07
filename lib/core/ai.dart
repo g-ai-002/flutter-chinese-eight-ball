@@ -48,11 +48,7 @@ class EightBallAi {
     final targets = AiTable.legalTargets(balls, group, onEight);
 
     if (!cue.active || targets.isEmpty) {
-      return AiShot(
-        angle: _random.nextDouble() * math.pi * 2,
-        power: 0.5,
-        score: 0,
-      );
+      return AiShot(angle: _random.nextDouble() * math.pi * 2, power: 0.5, score: 0);
     }
 
     final candidates = _attackCandidates(cue.position, targets, balls)
@@ -68,12 +64,7 @@ class EightBallAi {
     // 只有进攻把握不足时才试算防守，避免每次都多跑一轮物理模拟。
     var chosen = attack;
     if (attack == null || attack.score < AiWeights.attackConfidence) {
-      final safety = _safety.choose(
-        balls: balls,
-        targets: targets,
-        group: group,
-        onEight: onEight,
-      );
+      final safety = _safety.choose(balls: balls, targets: targets, group: group, onEight: onEight);
       chosen = _preferShot(attack, safety);
     }
     chosen ??= _safety.fallback(balls: balls, targets: targets);
@@ -98,18 +89,10 @@ class EightBallAi {
   }
 
   /// 枚举所有「目标球 → 袋口」组合，只保留几何上可行的线路。
-  List<_Candidate> _attackCandidates(
-    Vec2 cue,
-    List<BallState> targets,
-    List<BallState> balls,
-  ) {
+  List<_Candidate> _attackCandidates(Vec2 cue, List<BallState> targets, List<BallState> balls) {
     final candidates = <_Candidate>[];
     for (final target in targets) {
-      for (
-        var pocketIndex = 0;
-        pocketIndex < TableGeometry.pockets.length;
-        pocketIndex++
-      ) {
+      for (var pocketIndex = 0; pocketIndex < TableGeometry.pockets.length; pocketIndex++) {
         final line = AiTable.lineFor(cue, target, pocketIndex, balls);
         if (line == null) continue;
         candidates.add(
@@ -175,12 +158,7 @@ class EightBallAi {
     );
   }
 
-  double _pottedScore(
-    ShotOutcome outcome,
-    PlayerGroup? group,
-    bool onEight,
-    int targetPocket,
-  ) {
+  double _pottedScore(ShotOutcome outcome, PlayerGroup? group, bool onEight, int targetPocket) {
     var score = 0.0;
     for (final event in outcome.potted) {
       final id = event.ballId;
@@ -189,9 +167,7 @@ class EightBallAi {
       } else if (id == 8) {
         // 指袋规则下，只有落进候选袋口才算赢。
         final pocketMatched = outcome.pocketOf(8) == targetPocket;
-        score += onEight && pocketMatched
-            ? AiWeights.eightWinBonus
-            : -AiWeights.eightLossPenalty;
+        score += onEight && pocketMatched ? AiWeights.eightWinBonus : -AiWeights.eightLossPenalty;
       } else if (group == null || MatchRules.kindOfBall(id) == group.kind) {
         score += AiWeights.ownPotBonus;
       } else {
@@ -232,23 +208,13 @@ class EightBallAi {
     ];
     var bestNext = double.negativeInfinity;
     for (final ball in remaining) {
-      for (
-        var pocketIndex = 0;
-        pocketIndex < TableGeometry.pockets.length;
-        pocketIndex++
-      ) {
-        final line = AiTable.lineFor(
-          cue.position,
-          ball,
-          pocketIndex,
-          simulation.balls,
-        );
+      for (var pocketIndex = 0; pocketIndex < TableGeometry.pockets.length; pocketIndex++) {
+        final line = AiTable.lineFor(cue.position, ball, pocketIndex, simulation.balls);
         if (line != null && line.score > bestNext) bestNext = line.score;
       }
     }
     if (bestNext.isFinite) {
-      score +=
-          AiWeights.positionBaseBonus + bestNext * AiWeights.positionLineScale;
+      score += AiWeights.positionBaseBonus + bestNext * AiWeights.positionLineScale;
     } else if (remaining.isNotEmpty) {
       var nearest = double.infinity;
       for (final ball in remaining) {
@@ -265,8 +231,7 @@ class EightBallAi {
     if (edge < TableGeometry.ballRadius * 1.2) {
       score -= AiWeights.railPenalty * 0.6;
     }
-    if (AiTable.pocketDistance(cue.position) <
-        TableGeometry.pocketRadius * 1.6) {
+    if (AiTable.pocketDistance(cue.position) < TableGeometry.pocketRadius * 1.6) {
       score -= AiWeights.pocketPenalty;
     }
     return score;
@@ -274,6 +239,5 @@ class EightBallAi {
 
   double _applyError(double angle, double error) => angle + _symmetric(error);
 
-  double _symmetric(double magnitude) =>
-      (_random.nextDouble() * 2 - 1) * magnitude;
+  double _symmetric(double magnitude) => (_random.nextDouble() * 2 - 1) * magnitude;
 }

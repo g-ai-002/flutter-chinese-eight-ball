@@ -37,10 +37,7 @@ class _ReplayPageState extends State<ReplayPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_game != null) return;
-    _game = ReplayGame(
-      player: _player,
-      settings: context.read<SettingsProvider>(),
-    );
+    _game = ReplayGame(player: _player, settings: context.read<SettingsProvider>());
   }
 
   @override
@@ -76,11 +73,8 @@ class _ReplayPageState extends State<ReplayPage> {
           animation: _player,
           builder: (context, _) => LayoutBuilder(
             builder: (context, constraints) {
-              final wide =
-                  constraints.maxWidth >= 900 && constraints.maxHeight >= 520;
-              return wide
-                  ? _buildWide(game, constraints)
-                  : _buildNarrow(game, constraints);
+              final wide = constraints.maxWidth >= 900 && constraints.maxHeight >= 520;
+              return wide ? _buildWide(game, constraints) : _buildNarrow(game, constraints);
             },
           ),
         ),
@@ -103,10 +97,7 @@ class _ReplayPageState extends State<ReplayPage> {
                   child: Center(
                     child: _buildTable(
                       game,
-                      Size(
-                        constraints.maxWidth - 360,
-                        constraints.maxHeight - 150,
-                      ),
+                      Size(constraints.maxWidth - 360, constraints.maxHeight - 150),
                     ),
                   ),
                 ),
@@ -129,18 +120,11 @@ class _ReplayPageState extends State<ReplayPage> {
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
       child: Column(
         children: [
-          ReplaySummaryBar(
-            player: _player,
-            record: widget.record,
-            compact: true,
-          ),
+          ReplaySummaryBar(player: _player, record: widget.record, compact: true),
           const SizedBox(height: 8),
           Expanded(
             child: Center(
-              child: _buildTable(
-                game,
-                Size(constraints.maxWidth, constraints.maxHeight - 268),
-              ),
+              child: _buildTable(game, Size(constraints.maxWidth, constraints.maxHeight - 268)),
             ),
           ),
           const SizedBox(height: 6),
@@ -148,11 +132,7 @@ class _ReplayPageState extends State<ReplayPage> {
           const SizedBox(height: 4),
           SizedBox(
             height: 118,
-            child: ReplayShotList(
-              player: _player,
-              record: widget.record,
-              horizontal: true,
-            ),
+            child: ReplayShotList(player: _player, record: widget.record, horizontal: true),
           ),
         ],
       ),

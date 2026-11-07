@@ -27,16 +27,11 @@ class StatsRecentForm extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
       child: Row(
         children: [
-          for (final win in results) ...[
-            _ResultChip(win: win),
-            const SizedBox(width: 8),
-          ],
+          for (final win in results) ...[_ResultChip(win: win), const SizedBox(width: 8)],
           const Spacer(),
           Text(
             '$wins 胜 $losses 负',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
+            style: theme.textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
           ),
         ],
       ),
@@ -58,14 +53,10 @@ class _ResultChip extends StatelessWidget {
       height: 30,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: win
-            ? colors.primary.withValues(alpha: 0.16)
-            : colors.error.withValues(alpha: 0.14),
+        color: win ? colors.primary.withValues(alpha: 0.16) : colors.error.withValues(alpha: 0.14),
         shape: BoxShape.circle,
         border: Border.all(
-          color: win
-              ? colors.primary.withValues(alpha: 0.4)
-              : colors.error.withValues(alpha: 0.35),
+          color: win ? colors.primary.withValues(alpha: 0.4) : colors.error.withValues(alpha: 0.35),
         ),
       ),
       child: Text(

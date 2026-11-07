@@ -19,10 +19,7 @@ class TablePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: TableLayout.aspectRatio,
-      child: CustomPaint(
-        painter: _TablePreviewPainter(skin),
-        size: Size.infinite,
-      ),
+      child: CustomPaint(painter: _TablePreviewPainter(skin), size: Size.infinite),
     );
   }
 }
@@ -40,10 +37,7 @@ class _TablePreviewPainter extends CustomPainter {
     final balls = [
       for (final ball in TableGeometry.rackBalls())
         if (!ball.isCue) ball,
-      BallState(
-        spec: kCueBall,
-        position: const Vec2(TableGeometry.width * 0.3, 0.9),
-      ),
+      BallState(spec: kCueBall, position: const Vec2(TableGeometry.width * 0.3, 0.9)),
     ];
     _scene.paintBalls(canvas, layout, balls);
 
@@ -58,6 +52,5 @@ class _TablePreviewPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TablePreviewPainter oldDelegate) =>
-      oldDelegate.skin != skin;
+  bool shouldRepaint(covariant _TablePreviewPainter oldDelegate) => oldDelegate.skin != skin;
 }
