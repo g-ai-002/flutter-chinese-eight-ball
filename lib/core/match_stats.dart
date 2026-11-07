@@ -71,8 +71,7 @@ class MatchStats {
     Iterable<MatchRecord> records, {
     DateTime? now,
   }) {
-    final all = [...records]
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final all = newestFirst(records);
     final aiRecords = [
       for (final record in all)
         if (record.isVersusAi) record,

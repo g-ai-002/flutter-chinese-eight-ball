@@ -11,6 +11,8 @@ import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/record_factory.dart';
+
 void runToRest(MatchController controller, {int maxTicks = 4000}) {
   var ticks = 0;
   while (controller.phase == MatchPhase.shooting && ticks < maxTicks) {
@@ -177,6 +179,26 @@ void main() {
       expect(decoded, hasLength(MatchHistory.maxRecords));
       expect(decoded.first.id, 'record-11');
       expect(decoded.last.id, 'record-2');
+    });
+
+    test('排序与导出摘要使用同一口径', () {
+      final older = sampleRecord();
+      final newer = sampleRecord(index: 2);
+
+      expect(newestFirst([older, newer]).map((record) => record.id), [
+        'record-2',
+        'record-0',
+      ]);
+      expect(newer.resultSummary, '人机对战 · 进阶 · 你赢了 · 1 杆 · 0 球 · 清台后打进黑八');
+
+      final versus = testRecord(
+        index: 3,
+        mode: 'twoPlayers',
+        shots: const [
+          (0, [1, 2]),
+        ],
+      );
+      expect(versus.resultSummary, '双人对战 · 你赢了 · 1 杆 · 2 球 · 清台后打进黑八');
     });
 
     test('损坏的历史数据被安全丢弃', () {

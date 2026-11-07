@@ -16,8 +16,18 @@ enum AiDifficulty {
     custom => AiTuning.custom(0.5),
   };
 
-  static AiDifficulty byName(String? name) =>
-      values.firstWhere((value) => value.name == name, orElse: () => normal);
+  /// 按中文标签或英文名称解析；无法识别时返回 null。
+  static AiDifficulty? byLabel(String raw) {
+    final label = raw.trim();
+    final name = label.toLowerCase();
+    for (final value in values) {
+      if (value.label == label || value.name == name) return value;
+    }
+    return null;
+  }
+
+  /// 恢复已保存的偏好，未知值回退到进阶。
+  static AiDifficulty stored(String? name) => byLabel(name ?? '') ?? normal;
 }
 
 /// 实际传给 AI 的调参：候选线路数、瞄准误差与力度误差。

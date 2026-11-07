@@ -3,6 +3,10 @@ import 'dart:math' as math;
 import 'ball.dart';
 import 'vec.dart';
 
+/// 按完成时间从新到旧排序，统计、报告与列表共用同一顺序。
+List<MatchRecord> newestFirst(Iterable<MatchRecord> records) =>
+    [...records]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
 /// 回放中的一杆：出杆前的完整球局、击球参数与裁定结果。
 class ReplayShot {
   ReplayShot({
@@ -130,6 +134,11 @@ class MatchRecord {
   /// 侧栏与列表用的副标题，例如「人机对战 · 进阶 · 共 12 杆」。
   String get subtitle =>
       '$modeLabel · ${isVersusAi ? difficultyLabel : '同屏轮流'} · 共 $shotCount 杆';
+
+  /// 导出报告中的结果摘要（不含时间），列表与报告保持同一口径。
+  String get resultSummary =>
+      '$modeLabel${isVersusAi ? ' · $difficultyLabel' : ''} · $title · '
+      '$shotCount 杆 · $pottedTargets 球 · $endReason';
 
   Map<String, Object?> toJson() => {
     'id': id,

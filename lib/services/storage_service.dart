@@ -62,7 +62,7 @@ class StorageService {
 
   /// AI 难度，未设置或未知值回退到进阶。
   AiDifficulty get difficulty =>
-      AiDifficulty.byName(_p.getString(AppConstants.prefKeyDifficulty));
+      AiDifficulty.stored(_p.getString(AppConstants.prefKeyDifficulty));
 
   Future<void> setDifficulty(AiDifficulty value) =>
       _write((p) => p.setString(AppConstants.prefKeyDifficulty, value.name));

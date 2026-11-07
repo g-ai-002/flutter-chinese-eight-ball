@@ -22,6 +22,15 @@ void main() {
     expect(AiPresetCode.decode('CEB1-normal-1500')?.strength, 1);
   });
 
+  test('难度解析接受中文标签与英文名称', () {
+    expect(AiDifficulty.byLabel(' 高手 '), AiDifficulty.hard);
+    expect(AiDifficulty.byLabel('HARD'), AiDifficulty.hard);
+    expect(AiDifficulty.byLabel('unknown'), isNull);
+    expect(AiDifficulty.stored('easy'), AiDifficulty.easy);
+    expect(AiDifficulty.stored(null), AiDifficulty.normal);
+    expect(AiDifficulty.stored('unknown'), AiDifficulty.normal);
+  });
+
   test('非法配置码返回 null', () {
     const invalid = [
       '',

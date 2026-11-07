@@ -49,8 +49,6 @@ class TableScene {
     );
   }
 
-  void clearPots() => _pots.clear();
-
   void paintTable(Canvas canvas, TableLayout layout, TableSkin skin) {
     _tablePainter.paint(canvas, layout, skin);
   }
