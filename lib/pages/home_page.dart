@@ -208,22 +208,13 @@ class _TopBar extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: colors.outline),
           ),
-          child: Container(
-            width: 20,
-            height: 20,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
+          child: const Text(
+            '8',
+            style: TextStyle(
+              fontSize: 16,
+              height: 1,
+              fontWeight: FontWeight.w800,
               color: Color(0xFFF8F4E8),
-              shape: BoxShape.circle,
-            ),
-            child: const Text(
-              '8',
-              style: TextStyle(
-                fontSize: 13,
-                height: 1,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF17181A),
-              ),
             ),
           ),
         ),
