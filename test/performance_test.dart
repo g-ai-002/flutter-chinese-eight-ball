@@ -108,8 +108,6 @@ void main() {
               onAimRight: null,
               onShoot: () {},
               canShoot: true,
-              hint: '提示',
-              compact: true,
             );
           },
         ),
