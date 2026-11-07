@@ -1,5 +1,6 @@
 import 'package:chinese_eight_ball/app.dart';
 import 'package:chinese_eight_ball/core/ai.dart';
+import 'package:chinese_eight_ball/core/logic_clock.dart';
 import 'package:chinese_eight_ball/core/match_controller.dart';
 import 'package:chinese_eight_ball/core/match_record.dart';
 import 'package:chinese_eight_ball/core/table_geometry.dart';
@@ -131,6 +132,20 @@ void main() {
     expect(find.text('翡翠台呢'), findsOneWidget);
     expect(find.text('午夜蓝'), findsOneWidget);
     expect(find.text('酒红呢'), findsOneWidget);
+  });
+
+  testWidgets('设置页可切换逻辑更新速率', (tester) async {
+    final settings = await pumpPage(tester, const SettingsPage());
+
+    expect(find.text('逻辑更新速率'), findsOneWidget);
+    expect(settings.logicRate, LogicRate.hz60);
+    expect(find.text('60Hz'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('120Hz'));
+    await tester.tap(find.text('120Hz'));
+    await tester.pump();
+
+    expect(settings.logicRate, LogicRate.hz120);
   });
 
   testWidgets('设置页可切换到自定义 AI 强度', (tester) async {

@@ -1,4 +1,5 @@
 import 'package:chinese_eight_ball/core/ai.dart';
+import 'package:chinese_eight_ball/core/logic_clock.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:chinese_eight_ball/theme/table_skin.dart';
@@ -20,16 +21,19 @@ void main() {
     expect(storage.humanSide, 0);
     expect(storage.soundEnabled, isTrue);
     expect(storage.showAimGuide, isTrue);
+    expect(storage.logicRate, LogicRate.hz60);
 
     await storage.setDarkMode(true);
     await storage.setDifficulty(AiDifficulty.hard);
     await storage.setHumanSide(1);
     await storage.setTableSkinId('midnight');
+    await storage.setLogicRate(LogicRate.hz120);
 
     expect(storage.darkMode, isTrue);
     expect(storage.difficulty, AiDifficulty.hard);
     expect(storage.humanSide, 1);
     expect(storage.tableSkinId, 'midnight');
+    expect(storage.logicRate, LogicRate.hz120);
   });
 
   test('自定义 AI 强度默认中等并可收敛到边界', () async {
@@ -48,11 +52,13 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'difficulty': 'unknown',
       'table_skin': 'missing',
+      'logic_rate': 'hz240',
     });
     StorageService.resetForTests();
     final storage = await StorageService.instance;
     expect(storage.difficulty, AiDifficulty.normal);
     expect(tableSkinOf(storage.tableSkinId).id, 'emerald');
+    expect(storage.logicRate, LogicRate.hz60);
   });
 
   test('设置提供者写入后通知监听者', () async {
@@ -65,5 +71,10 @@ void main() {
     expect(provider.showAimGuide, isFalse);
     expect(notified, 1);
     expect(storage.showAimGuide, isFalse);
+
+    await provider.setLogicRate(LogicRate.hz30);
+    expect(provider.logicRate, LogicRate.hz30);
+    expect(notified, 2);
+    expect(storage.logicRate, LogicRate.hz30);
   });
 }
