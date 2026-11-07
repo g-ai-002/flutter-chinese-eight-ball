@@ -3,12 +3,13 @@ import 'dart:ui';
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 
+import '../core/logic_clock.dart';
 import '../core/match_controller.dart';
 import '../core/vec.dart';
 import '../providers/settings_provider.dart';
 import 'table_component.dart';
 
-/// Flame 游戏入口：推进物理时间并绘制球台。
+/// Flame 游戏入口：按所选逻辑速率推进物理时间并绘制球台。
 class EightBallGame extends FlameGame {
   EightBallGame({required this.controller, required this.settings, this.placementPreview});
 
@@ -16,6 +17,7 @@ class EightBallGame extends FlameGame {
   final SettingsProvider settings;
   final ValueNotifier<Vec2?>? placementPreview;
 
+  final LogicClock _clock = LogicClock();
   TableComponent? _table;
 
   @override
@@ -35,7 +37,12 @@ class EightBallGame extends FlameGame {
 
   @override
   void update(double dt) {
-    controller.tick(dt);
+    if (controller.phase == MatchPhase.shooting) {
+      _clock.rate = settings.logicRate;
+      _clock.advance(dt, controller.tick);
+    } else {
+      _clock.reset();
+    }
     super.update(dt);
   }
 

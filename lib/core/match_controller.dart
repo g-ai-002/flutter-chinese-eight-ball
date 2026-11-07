@@ -29,8 +29,8 @@ enum MatchPhase { aiming, shooting, aiThinking, placingCue, gameOver }
 
 /// 对局控制器：负责摆球、出杆、物理推进、回合裁定与 AI 行动。
 ///
-/// 界面的动画帧由 Flame 的 update 调用 [tick] 驱动，击球过程中的音效与
-/// 落袋动画从 [pendingEffects] 取用。
+/// 界面的动画帧由 Flame 的 update 按所选逻辑速率调用 [tick] 驱动，击球
+/// 过程中的音效与落袋动画从 [pendingEffects] 取用。
 class MatchController extends ChangeNotifier {
   MatchController({
     required this.mode,
@@ -288,7 +288,7 @@ class MatchController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Flame 每帧调用：推进物理、收集特效、落定后裁定。
+  /// Flame 按所选逻辑速率调用：推进物理、收集特效、落定后裁定。
   void tick(double dt) {
     if (_phase != MatchPhase.shooting) return;
     _simulation.step(dt);

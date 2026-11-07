@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/ai.dart';
+import '../core/logic_clock.dart';
 import '../utils/constants.dart';
 
 /// 轻量偏好存储：写入失败时静默忽略，不影响对局主流程。
@@ -75,6 +76,12 @@ class StorageService {
   int get humanSide => _p.getInt(AppConstants.prefKeyHumanSide) ?? 0;
   Future<void> setHumanSide(int value) =>
       _write((p) => p.setInt(AppConstants.prefKeyHumanSide, value));
+
+  /// 逻辑更新速率，未设置或未知值回退到 60Hz。
+  LogicRate get logicRate => LogicRate.stored(_p.getString(AppConstants.prefKeyLogicRate));
+
+  Future<void> setLogicRate(LogicRate value) =>
+      _write((p) => p.setString(AppConstants.prefKeyLogicRate, value.name));
 
   /// 最近对局记录的 JSON，解析与裁剪由 `MatchHistory` 负责。
   String? get matchHistoryJson => _p.getString(AppConstants.prefKeyMatchHistory);

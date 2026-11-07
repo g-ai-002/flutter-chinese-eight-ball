@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/ai.dart';
+import '../core/logic_clock.dart';
 import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
 import 'help_page.dart';
@@ -39,6 +40,14 @@ class SettingsPage extends StatelessWidget {
             selected: settings.humanSide,
             labelOf: (value) => value == 0 ? '先手开球' : '后手开球',
             onSelected: settings.setHumanSide,
+          ),
+          SettingsChipTile<LogicRate>(
+            label: '逻辑更新速率',
+            hint: '默认 60Hz，低配设备用 30Hz 更省电，高刷屏可用 120Hz',
+            values: LogicRate.values,
+            selected: settings.logicRate,
+            labelOf: (value) => value.label,
+            onSelected: settings.setLogicRate,
           ),
           const SizedBox(height: 8),
         ],

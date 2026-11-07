@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../core/ai.dart';
+import '../core/logic_clock.dart';
 import '../services/music_service.dart';
 import '../services/sound_service.dart';
 import '../services/storage_service.dart';
@@ -29,6 +30,9 @@ class SettingsProvider extends ChangeNotifier {
 
   int get humanSide => _storage.humanSide;
   Future<void> setHumanSide(int value) => _update(() => _storage.setHumanSide(value));
+
+  LogicRate get logicRate => _storage.logicRate;
+  Future<void> setLogicRate(LogicRate value) => _update(() => _storage.setLogicRate(value));
 
   TableSkin get tableSkin => tableSkinOf(_storage.tableSkinId);
   Future<void> setTableSkin(TableSkin value) => _update(() => _storage.setTableSkinId(value.id));

@@ -48,6 +48,7 @@ class SettingsChipTile<T> extends StatelessWidget {
     required this.labelOf,
     required this.onSelected,
     this.avatarOf,
+    this.hint,
   });
 
   final String label;
@@ -56,6 +57,7 @@ class SettingsChipTile<T> extends StatelessWidget {
   final String Function(T value) labelOf;
   final ValueChanged<T> onSelected;
   final Widget Function(T value)? avatarOf;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +68,10 @@ class SettingsChipTile<T> extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: theme.textTheme.bodyMedium),
+          if (hint != null) ...[
+            const SizedBox(height: 2),
+            _settingsSubtitle(context, hint!),
+          ],
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
