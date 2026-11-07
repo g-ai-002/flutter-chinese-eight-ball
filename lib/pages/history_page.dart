@@ -7,6 +7,7 @@ import '../core/stats_report.dart';
 import '../services/match_history_service.dart';
 import 'replay_page.dart';
 import 'stats_page.dart';
+import 'widgets/floating_message.dart';
 import 'widgets/history_card.dart';
 
 /// 最近对局：展示本机保存的对局结果，点击进入逐杆回放。
@@ -77,14 +78,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<void> _export(List<MatchRecord> records) async {
     await Clipboard.setData(ClipboardData(text: buildMatchReport(records)));
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('对局数据已复制到剪贴板'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    showFloatingMessage(context, '对局数据已复制到剪贴板');
   }
 
   @override

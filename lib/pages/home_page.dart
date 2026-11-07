@@ -101,18 +101,15 @@ class HomePage extends StatelessWidget {
     BuildContext context,
     SettingsProvider settings,
     GameMode mode,
-  ) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => GamePage(
-          mode: mode,
-          difficulty: settings.difficulty,
-          aiStrength: settings.aiStrength,
-          humanSide: mode == GameMode.vsAi ? settings.humanSide : 0,
-        ),
-      ),
-    );
-  }
+  ) => _openPage(
+    context,
+    GamePage(
+      mode: mode,
+      difficulty: settings.difficulty,
+      aiStrength: settings.aiStrength,
+      humanSide: mode == GameMode.vsAi ? settings.humanSide : 0,
+    ),
+  );
 
   List<Widget> _entries(
     BuildContext context,
@@ -153,8 +150,7 @@ class HomePage extends StatelessWidget {
       ),
       title: '最近对局',
       subtitle: '逐杆回放 · 复盘每一杆',
-      onTap: () => Navigator.of(context)
-          .push(MaterialPageRoute<void>(builder: (_) => const HistoryPage())),
+      onTap: () => _openPage(context, const HistoryPage()),
     ),
     EntryTile(
       leading: EntryBadge(
@@ -163,9 +159,7 @@ class HomePage extends StatelessWidget {
       ),
       title: '数据统计',
       subtitle: '胜率 · 场均杆数 · 进球表现',
-      onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute<void>(builder: (_) => const StatsPage())),
+      onTap: () => _openPage(context, const StatsPage()),
     ),
     EntryTile(
       leading: const EntryBadge(
@@ -174,16 +168,13 @@ class HomePage extends StatelessWidget {
       ),
       title: '玩法规则',
       subtitle: '中式黑八规则与操作说明',
-      onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
+      onTap: () => _openPage(context, const HelpPage()),
     ),
     EntryTile(
       leading: EntryBadge(icon: Icons.tune_outlined, accent: colors.secondary),
       title: '设置',
       subtitle: '球台配色 · 音效 · 偏好',
-      onTap: () => Navigator.of(context)
-          .push(MaterialPageRoute<void>(builder: (_) => const SettingsPage())),
+      onTap: () => _openPage(context, const SettingsPage()),
     ),
   ];
 }
@@ -251,9 +242,7 @@ class _TopBar extends StatelessWidget {
         ),
         IconButton(
           tooltip: '设置',
-          onPressed: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => const SettingsPage())),
+          onPressed: () => _openPage(context, const SettingsPage()),
           icon: const Icon(Icons.settings_outlined, size: 21),
         ),
       ],
@@ -323,3 +312,6 @@ class _OrnamentLine extends StatelessWidget {
     return Container(width: 36, height: 1, color: color.withValues(alpha: 0.9));
   }
 }
+
+void _openPage(BuildContext context, Widget page) =>
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));

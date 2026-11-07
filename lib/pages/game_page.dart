@@ -15,6 +15,7 @@ import 'game_hint.dart';
 import 'help_page.dart';
 import 'replay_page.dart';
 import 'widgets/compact_players.dart';
+import 'widgets/floating_message.dart';
 import 'widgets/game_over_dialog.dart';
 import 'widgets/game_side_panel.dart';
 import 'widgets/power_control.dart';
@@ -394,7 +395,6 @@ class _GamePageState extends State<GamePage> {
   void _tryPlaceCue(Vec2 point) {
     if (_controller.placeCue(point)) return;
     _placementPreview.value = null;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('该位置无法摆放母球，请换一个位置')));
+    showFloatingMessage(context, '该位置无法摆放母球，请换一个位置');
   }
 }
