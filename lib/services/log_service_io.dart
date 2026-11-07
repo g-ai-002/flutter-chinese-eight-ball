@@ -111,25 +111,23 @@ class LogService {
   }
 
   void _refreshLogFile() {
-    final dir = _logDir;
-    if (dir == null) return;
+    if (_logDir == null) return;
     final now = _now();
     final current = _logDate;
-    final needSwitch =
-        current == null ||
-        current.year != now.year ||
-        current.month != now.month ||
-        current.day != now.day;
-    if (needSwitch) {
-      final file = _openTodayFile();
-      if (file != null) {
-        _logFile = file;
-        _logDate = now;
-        _cleanOldLogs();
-      }
+    final sameDay =
+        current != null &&
+        current.year == now.year &&
+        current.month == now.month &&
+        current.day == now.day;
+    if (sameDay) {
+      _rotateIfNeeded();
       return;
     }
-    _rotateIfNeeded();
+    final file = _openTodayFile();
+    if (file == null) return;
+    _logFile = file;
+    _logDate = now;
+    _cleanOldLogs();
   }
 
   File? _openTodayFile() {

@@ -145,6 +145,21 @@ void main() {
     expect(find.textContaining('瞄准误差'), findsOneWidget);
   });
 
+  testWidgets('设置页可导入 AI 配置码', (tester) async {
+    final settings = await pumpPage(tester, const SettingsPage());
+
+    await tester.tap(find.text('导入 AI 配置'));
+    await tester.pumpAndSettle();
+    expect(find.text('导入 AI 配置'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField), 'CEB1-高手-750');
+    await tester.tap(find.text('导入'));
+    await tester.pumpAndSettle();
+
+    expect(settings.difficulty, AiDifficulty.hard);
+    expect(settings.aiStrength, closeTo(0.75, 1e-9));
+  });
+
   testWidgets('玩法规则页列出核心规则', (tester) async {
     await pumpPage(tester, const HelpPage());
 
@@ -174,6 +189,7 @@ void main() {
     expect(find.text('玩家一获胜'), findsOneWidget);
     expect(find.textContaining('双人对战'), findsOneWidget);
     expect(find.text('清台后打进黑八'), findsOneWidget);
+    expect(find.byTooltip('导出数据'), findsOneWidget);
 
     await tester.tap(find.text('玩家一获胜'));
     await tester.pump();

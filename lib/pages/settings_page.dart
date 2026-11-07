@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../core/ai.dart';
+import '../core/ai_preset.dart';
 import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
 import '../services/log_service.dart';
@@ -43,6 +45,16 @@ class SettingsPage extends StatelessWidget {
                         value: settings.aiStrength,
                         onChanged: settings.setAiStrength,
                       ),
+                    _LinkRow(
+                      title: 'AI 配置码',
+                      subtitle: '复制当前难度与强度，粘贴到另一台设备',
+                      onTap: () => _shareAiPreset(context, settings),
+                    ),
+                    _LinkRow(
+                      title: '导入 AI 配置',
+                      subtitle: '输入或粘贴配置码恢复 AI 设置',
+                      onTap: () => _importAiPreset(context, settings),
+                    ),
                     _ChipRow<int>(
                       label: '开球先后',
                       values: const [0, 1],
@@ -146,6 +158,40 @@ class SettingsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _shareAiPreset(
+    BuildContext context,
+    SettingsProvider settings,
+  ) async {
+    final code = AiPresetCode.encode(settings.difficulty, settings.aiStrength);
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!context.mounted) return;
+    _toast(context, '已复制配置码 $code');
+  }
+
+  Future<void> _importAiPreset(
+    BuildContext context,
+    SettingsProvider settings,
+  ) async {
+    final preset =
+        await showDialog<({AiDifficulty difficulty, double strength})>(
+          context: context,
+          builder: (_) => const _PresetImportDialog(),
+        );
+    if (preset == null) return;
+    await settings.setDifficulty(preset.difficulty);
+    await settings.setAiStrength(preset.strength);
+    if (!context.mounted) return;
+    _toast(context, '已导入 ${preset.difficulty.label} 配置');
+  }
+
+  void _toast(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
   }
 
   Future<void> _showLogs(BuildContext context) async {
@@ -345,6 +391,57 @@ class _LinkRow extends StatelessWidget {
         ),
       ),
       trailing: const Icon(Icons.chevron_right, size: 20),
+    );
+  }
+}
+
+class _PresetImportDialog extends StatefulWidget {
+  const _PresetImportDialog();
+
+  @override
+  State<_PresetImportDialog> createState() => _PresetImportDialogState();
+}
+
+class _PresetImportDialogState extends State<_PresetImportDialog> {
+  final TextEditingController _input = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = AiPresetCode.decode(_input.text);
+    if (value == null) {
+      setState(() => _error = '配置码无效，请检查后重试');
+      return;
+    }
+    Navigator.of(context).pop(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('导入 AI 配置'),
+      content: TextField(
+        controller: _input,
+        autofocus: true,
+        decoration: InputDecoration(
+          labelText: '配置码',
+          hintText: 'CEB1-进阶-620',
+          errorText: _error,
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('导入')),
+      ],
     );
   }
 }

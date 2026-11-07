@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/match_history.dart';
 import '../core/match_record.dart';
+import '../core/stats_report.dart';
 import '../services/match_history_service.dart';
 import 'replay_page.dart';
 import 'stats_page.dart';
@@ -72,6 +74,19 @@ class _HistoryPageState extends State<HistoryPage> {
         .push(MaterialPageRoute<void>(builder: (_) => const StatsPage()));
   }
 
+  Future<void> _export(List<MatchRecord> records) async {
+    await Clipboard.setData(ClipboardData(text: buildMatchReport(records)));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('对局数据已复制到剪贴板'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final records = _records;
@@ -84,6 +99,12 @@ class _HistoryPageState extends State<HistoryPage> {
             onPressed: _openStats,
             icon: const Icon(Icons.query_stats_outlined, size: 22),
           ),
+          if (records != null && records.isNotEmpty)
+            IconButton(
+              tooltip: '导出数据',
+              onPressed: () => _export(records),
+              icon: const Icon(Icons.ios_share, size: 22),
+            ),
           if (records != null && records.isNotEmpty)
             IconButton(
               tooltip: '清空记录',

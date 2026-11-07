@@ -25,8 +25,8 @@ class PracticeToolbar extends StatelessWidget {
     final preset = await showModalBottomSheet<PracticePreset>(
       context: context,
       builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: ListView(
+          shrinkWrap: true,
           children: [
             const ListTile(dense: true, title: Text('选择练习球型')),
             for (final item in PracticePreset.values)
