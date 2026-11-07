@@ -41,6 +41,7 @@ class GameHeader extends StatelessWidget {
     required this.subtitle,
     required this.hint,
     required this.inline,
+    required this.compact,
     required this.restartLabel,
     required this.onBack,
     required this.onHelp,
@@ -53,6 +54,9 @@ class GameHeader extends StatelessWidget {
   final String subtitle;
   final String hint;
   final bool inline;
+
+  /// 矮屏紧凑布局：当前提示内联到标题右侧，球台下方不再保留提示条。
+  final bool compact;
   final String restartLabel;
   final VoidCallback onBack;
   final VoidCallback onHelp;
@@ -81,7 +85,7 @@ class GameHeader extends StatelessWidget {
                   style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 1),
-                if (inline)
+                if (inline || compact)
                   PlayerSummary(controller: controller, dense: true)
                 else
                   Text(
@@ -118,6 +122,19 @@ class GameHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            TurnChip(controller: controller, dense: true),
+          ] else if (compact) ...[
+            const SizedBox(width: 10),
+            Flexible(
+              flex: 2,
+              child: Text(
+                hint,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurface),
+              ),
+            ),
+            const SizedBox(width: 6),
             TurnChip(controller: controller, dense: true),
           ],
           const SizedBox(width: 4),

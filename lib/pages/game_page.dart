@@ -218,6 +218,7 @@ class _GamePageState extends State<GamePage> {
                 subtitle: _subtitle,
                 hint: hint,
                 inline: layout.inline,
+                compact: layout.compact,
                 restartLabel: restartLabel,
                 onBack: () => Navigator.of(context).maybePop(),
                 onHelp: _openHelp,
@@ -290,15 +291,19 @@ class _GamePageState extends State<GamePage> {
             Positioned(
               left: 6,
               top: 6,
-              child: PracticeToolbar(
-                editing: _controller.isEditingBalls,
-                canUndo: _controller.canUndoPracticeShot,
-                onToggleEdit: () => _controller.isEditingBalls
-                    ? _controller.endBallEdit()
-                    : _controller.beginBallEdit(),
-                onUndo: _controller.undoPracticeShot,
-                onPreset: _controller.applyPracticePreset,
-                selectedPreset: _controller.practicePreset,
+              right: 6,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: PracticeToolbar(
+                  editing: _controller.isEditingBalls,
+                  canUndo: _controller.canUndoPracticeShot,
+                  onToggleEdit: () => _controller.isEditingBalls
+                      ? _controller.endBallEdit()
+                      : _controller.beginBallEdit(),
+                  onUndo: _controller.undoPracticeShot,
+                  onPreset: _controller.applyPracticePreset,
+                  selectedPreset: _controller.practicePreset,
+                ),
               ),
             ),
         ],
