@@ -26,35 +26,37 @@
 - 🎨 三套球台配色（翡翠台呢 / 午夜蓝 / 酒红呢）与深浅色主题
 - ✨ Flame 渲染：台呢渐变、木框、袋口、球体高光、出杆球杆与落袋动画
 - ⚡ 性能：静态台面与球体显示列表缓存、物理平方距离宽相位、力度滑杆局部刷新
+- 🧭 空间：球台吃满可用区域，回合 / 球组 / 提示悬浮在四周，球局明细可收起，文案变化不移动球台
 - 🔊 运行时合成音效（出杆 / 撞击 / 落袋 / 犯规 / 终局）与背景音乐，支持震动反馈
-- 📱 响应式：手机 / 折叠屏 / 平板 / Windows 窗口自适应，宽屏侧栏、窄屏底部控制
+- 📱 响应式：手机 / 折叠屏 / 平板 / Windows 窗口自适应，宽屏单行操作条、窄屏双行操作条
 - 🌓 简体中文界面，Windows 优先 `Microsoft YaHei UI`，Web 使用 soup_fonts 思源黑体
 - 🧾 日志按天写入用户目录，设置页可查看最近日志
 
 ## 下载
 
-v0.7.2（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.7.2)
+v0.7.3（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.7.3)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-chinese-eight-ball-0.7.2-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.7.2-windows-x86_64.zip` |
-| Web | `flutter-chinese-eight-ball-0.7.2-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-chinese-eight-ball-0.7.3-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.7.3-windows-x86_64.zip` |
+| Web | `flutter-chinese-eight-ball-0.7.3-web.zip`（解压后起静态服务器） |
 
-Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.7.2/` 与 `debug/`），可直接部署为静态站点。
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.7.3/` 与 `debug/`），可直接部署为静态站点。
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.7.3 | 球台吃满可用空间，回合 / 球组 / 提示改为四周悬浮条，文案变化不再移动球台 |
 | 0.7.2 | 缓存静态台面与球体显示列表，减少物理模拟分配与力度滑杆整页重建 |
 | 0.7.1 | 重构配置码解析、报告生成与设置页组件，统一浮层提示 |
 | 0.7.0 | 新增 AI 配置码分享/导入、对局数据导出与翻袋球、薄球练习球型 |
 | 0.6.1 | 重构按天聚合、进球率与练习球型布局，走势与按天趋势共用柱状图 |
-| 0.6.0 | 新增近 7 天按天趋势与长台直线、堆球练习球型 |
 
 更早版本：
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.6.0 | 新增近 7 天按天趋势与长台直线、堆球练习球型 |
 | 0.5.1 | 重构走势聚合、AI 强度插值与练习状态，球型浮层标识当前模板 |
 | 0.5.0 | 新增近 8 场走势图、AI 自定义强度与四种练习球型模板 |
 | 0.4.1 | 重构 AI 决策与防守评分、统计聚合与统计页组件，修复最近战绩的顺序依赖 |
