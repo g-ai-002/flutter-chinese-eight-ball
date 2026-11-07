@@ -12,17 +12,20 @@ import '../flame/table_pointer.dart';
 import '../providers/settings_provider.dart';
 import '../services/match_history_service.dart';
 import 'game_hint.dart';
+import 'game_layout.dart';
 import 'help_page.dart';
 import 'replay_page.dart';
-import 'widgets/compact_players.dart';
 import 'widgets/floating_message.dart';
+import 'widgets/game_hud.dart';
 import 'widgets/game_over_dialog.dart';
 import 'widgets/game_side_panel.dart';
 import 'widgets/power_control.dart';
 import 'widgets/practice_toolbar.dart';
-import 'widgets/status_strip.dart';
 
 /// 对局页：球台渲染、瞄准手势、力度控制与回合信息。
+///
+/// 球台吃满顶部信息条与底部操作条之外的区域，其余信息都叠放在四周的悬浮
+/// 条里，文案变化不会影响球台的大小与位置。
 class GamePage extends StatefulWidget {
   const GamePage({
     super.key,
@@ -47,6 +50,7 @@ class _GamePageState extends State<GamePage> {
   SettingsProvider? _settings;
   EightBallGame? _game;
   bool _dialogOpen = false;
+  bool _panelOpen = false;
   int? _dragBallId;
   MatchRecord? _savedRecord;
 
@@ -160,119 +164,100 @@ class _GamePageState extends State<GamePage> {
     if (confirmed == true) _controller.restart();
   }
 
+  void _openHelp() {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HelpPage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final game = _game;
     if (game == null) {
       return const Scaffold(body: SizedBox.shrink());
     }
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
+      body: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.1,
+        child: SafeArea(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) => _buildStage(context, game),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 球台居中铺满，四周浮层按固定高度叠放，内容变化不影响球台。
+  Widget _buildStage(BuildContext context, EightBallGame game) {
+    final theme = Theme.of(context);
+    final restartLabel = widget.mode == GameMode.practice ? '重置球桌' : '重新开球';
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final layout = GameLayout(constraints.biggest);
+        final hint = gameHint(_controller);
+        return Stack(
           children: [
-            Text(widget.mode.label),
-            Text(
-              _subtitle,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                letterSpacing: 1,
-                fontWeight: FontWeight.w400,
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      radius: 0.95,
+                      colors: [theme.colorScheme.surface, theme.scaffoldBackgroundColor],
+                    ),
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: '玩法规则',
-            onPressed: () =>
-                Navigator.of(context)
-                    .push(MaterialPageRoute<void>(builder: (_) => const HelpPage())),
-            icon: const Icon(Icons.menu_book_outlined, size: 21),
-          ),
-          IconButton(
-            tooltip: widget.mode == GameMode.practice ? '重置球桌' : '重新开球',
-            onPressed: _confirmRestart,
-            icon: const Icon(Icons.restart_alt, size: 22),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => LayoutBuilder(
-            builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 980 && constraints.maxHeight >= 520;
-              if (wide) {
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            StatusStrip(controller: _controller),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Center(
-                                child: _buildTable(
-                                  game,
-                                  constraints.maxWidth - 360,
-                                  constraints.maxHeight - 100,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 320,
-                        child: GameSidePanel(
-                          controller: _controller,
-                          mode: widget.mode,
-                          onRestart: _confirmRestart,
-                          hint: gameHint(_controller),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
-                child: Column(
-                  children: [
-                    CompactPlayers(controller: _controller),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Center(
-                        child: _buildTable(game, constraints.maxWidth, constraints.maxHeight - 190),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    StatusStrip(controller: _controller, compact: true),
-                    const SizedBox(height: 6),
-                    PowerControl(
-                      power: _controller.power,
-                      onPowerChanged: _controller.setPower,
-                      onAimLeft: _controller.canAim ? () => _controller.adjustAim(-0.006) : null,
-                      onAimRight: _controller.canAim ? () => _controller.adjustAim(0.006) : null,
-                      onShoot: _controller.shoot,
-                      canShoot: _controller.canShoot,
-                      hint: gameHint(_controller),
-                      compact: true,
-                    ),
-                  ],
+            Positioned.fromRect(rect: layout.tableRect, child: _buildTable(game, layout.tableSize)),
+            Positioned.fromRect(
+              rect: layout.header,
+              child: GameHeader(
+                controller: _controller,
+                title: widget.mode.label,
+                subtitle: _subtitle,
+                hint: hint,
+                inline: layout.inline,
+                restartLabel: restartLabel,
+                onBack: () => Navigator.of(context).maybePop(),
+                onHelp: _openHelp,
+                onRestart: _confirmRestart,
+                onPanel: () => setState(() => _panelOpen = !_panelOpen),
+              ),
+            ),
+            if (layout.info != null)
+              Positioned.fromRect(
+                rect: layout.info!,
+                child: GameInfoPill(controller: _controller, hint: hint),
+              ),
+            Positioned.fromRect(
+              rect: layout.dock,
+              child: HudSurface(
+                padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+                child: PowerControl(
+                  power: _controller.power,
+                  onPowerChanged: _controller.setPower,
+                  onAimLeft: _controller.canAim ? () => _controller.adjustAim(-0.006) : null,
+                  onAimRight: _controller.canAim ? () => _controller.adjustAim(0.006) : null,
+                  onShoot: _controller.shoot,
+                  canShoot: _controller.canShoot,
+                  singleRow: layout.singleRow,
                 ),
-              );
-            },
-          ),
-        ),
-      ),
+              ),
+            ),
+            if (_panelOpen)
+              Positioned.fromRect(
+                rect: layout.panel,
+                child: GameSidePanel(
+                  controller: _controller,
+                  mode: widget.mode,
+                  hint: hint,
+                  onClose: () => setState(() => _panelOpen = false),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -282,9 +267,9 @@ class _GamePageState extends State<GamePage> {
     GameMode.practice => '中式黑八 · 自由练习',
   };
 
-  Widget _buildTable(EightBallGame game, double maxWidth, double maxHeight) {
-    final size = TableLayout.fit(Size(maxWidth, maxHeight));
+  Widget _buildTable(EightBallGame game, Size size) {
     return SizedBox(
+      key: const Key('game-table'),
       width: size.width,
       height: size.height,
       child: Stack(
