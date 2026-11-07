@@ -1,7 +1,7 @@
 name: chinese_eight_ball
 description: 中式黑八 - 支持人机对战与双人对局的本地台球游戏，覆盖 Android、Windows 与 Web
 publish_to: 'none'
-version: 0.7.3
+version: 0.7.4
 
 environment:
   sdk: '>=3.13.7 <4.0.0'
