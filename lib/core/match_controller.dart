@@ -81,7 +81,7 @@ class MatchController extends ChangeNotifier {
   ShotSimulation _simulation;
   MatchPhase _phase = MatchPhase.aiming;
   double aimAngle = 0;
-  double power = defaultPower;
+  final List<double> _powers = [defaultPower, defaultPower];
   int? _onEightBefore;
   int _effectCursor = 0;
   bool _disposed = false;
@@ -162,14 +162,12 @@ class MatchController extends ChangeNotifier {
   int remainingCount(PlayerGroup group) =>
       balls.where((ball) => ball.active && ball.kind == group.kind).length;
 
-  int get remainingEight => balls.where((ball) => ball.active && ball.isEight).length;
-
   /// 本方还需打进的球数（清台后显示黑八 1 颗）。
   int remainingFor(int player) {
     final group = _rules.groupOf(player);
     if (group == null) return 7;
     final count = remainingCount(group);
-    return count == 0 ? remainingEight : count;
+    return count == 0 ? balls.where((ball) => ball.active && ball.isEight).length : count;
   }
 
   // 瞄准只影响 Flame 的下一帧绘制，不触发界面 rebuild，避免拖动时整页重建。
@@ -177,8 +175,11 @@ class MatchController extends ChangeNotifier {
 
   void adjustAim(double delta) => aimAngle += delta;
 
+  /// 力度按玩家分别记忆，轮到谁就恢复谁上次调节的力度，AI 出杆不改写玩家的滑杆。
+  double get power => _powers[currentPlayer];
+
   /// 力度只影响球杆拉距与出杆，滑杆自己刷新即可，不触发整页重建。
-  void setPower(double value) => power = value.clamp(0.05, 1.0);
+  void setPower(double value) => _powers[currentPlayer] = value.clamp(0.05, 1.0);
 
   /// 指向台面上的某个坐标，用于拖动瞄准与点击球体吸附。
   void aimAt(Vec2 point) {
@@ -497,7 +498,7 @@ class MatchController extends ChangeNotifier {
     }
 
     aimAngle = shot.angle;
-    power = shot.power;
+    setPower(shot.power);
     _phase = MatchPhase.aiming;
     notifyListeners();
 
@@ -525,7 +526,7 @@ class MatchController extends ChangeNotifier {
     _startRack();
     _history.clear();
     _pushLog(isPractice ? '自由练习：拖动球台瞄准，可随时摆球或重打本杆' : '开球：${playerName(0)}先手');
-    power = defaultPower;
+    _powers.fillRange(0, _powers.length, defaultPower);
     notifyListeners();
     if (_isAiTurn) _scheduleAiTurn();
   }

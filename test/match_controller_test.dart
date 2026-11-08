@@ -134,6 +134,50 @@ void main() {
     expect(controller.rules.shotNumber, 0);
     expect(controller.isBreak, isTrue);
     expect(controller.phase, MatchPhase.aiming);
+    expect(controller.power, MatchController.defaultPower);
+    controller.rules.current = 1;
+    expect(controller.power, MatchController.defaultPower, reason: '重新开球后两位玩家的力度都归位');
+  });
+
+  test('力度按玩家分别记忆，轮到谁就恢复谁上次调节的值', () {
+    final controller = MatchController(
+      mode: GameMode.twoPlayers,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+
+    controller.setPower(0.4);
+    expect(controller.power, closeTo(0.4, 1e-9));
+
+    controller.rules.current = 1;
+    expect(controller.power, MatchController.defaultPower, reason: '对手没调过力度，用默认值');
+    controller.setPower(0.85);
+    expect(controller.power, closeTo(0.85, 1e-9));
+
+    controller.rules.current = 0;
+    expect(controller.power, closeTo(0.4, 1e-9), reason: '换回玩家一应恢复他上次的力度');
+  });
+
+  test('AI 出杆不会覆盖玩家上次调节的力度', () async {
+    final controller = MatchController(
+      mode: GameMode.vsAi,
+      difficulty: AiDifficulty.easy,
+      autoPlayAi: false,
+      random: math.Random(3),
+    );
+    addTearDown(controller.dispose);
+    controller.setPower(0.9);
+
+    controller.rules
+      ..isBreak = false
+      ..current = 1;
+    expect(controller.isAiTurn, isTrue);
+    await controller.playAiTurn();
+    runToRest(controller);
+    expect(controller.rules.shotNumber, greaterThan(0));
+
+    controller.rules.current = 0;
+    expect(controller.power, closeTo(0.9, 1e-9), reason: '轮到玩家时恢复玩家自己的力度');
   });
 
   test('人机对战轮到 AI 时自动出杆', () async {

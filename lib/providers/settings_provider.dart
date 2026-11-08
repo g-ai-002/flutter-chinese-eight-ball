@@ -26,8 +26,6 @@ class SettingsProvider extends ChangeNotifier {
   double get aiStrength => _storage.aiStrength;
   Future<void> setAiStrength(double value) => _update(() => _storage.setAiStrength(value));
 
-  AiTuning get aiTuning => AiTuning.of(difficulty, aiStrength);
-
   int get humanSide => _storage.humanSide;
   Future<void> setHumanSide(int value) => _update(() => _storage.setHumanSide(value));
 
