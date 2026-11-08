@@ -332,6 +332,45 @@ void main() {
     });
   }
 
+  for (final entry in const {'横屏手机': Size(844, 390), '横屏小手机': Size(640, 360)}.entries) {
+    testWidgets('${entry.key}：叠在球台上的浮层只留 5% 底板', (tester) async {
+      await pumpGame(tester, entry.value);
+      for (final surface in tester.widgetList<HudSurface>(find.byType(HudSurface))) {
+        expect(surface.opacity, HudSurface.immersiveOpacity, reason: '${entry.key} 浮层仍挡住球台');
+      }
+      final header = tester.widget<Material>(
+        find.descendant(of: find.byType(GameHeader), matching: find.byType(Material)).first,
+      );
+      expect(header.color!.a, closeTo(HudSurface.immersiveOpacity, 0.001));
+      // 底板几乎全透明，文字改用深色主题的浅色，台呢上还能看清。
+      final text = tester.widget<RichText>(
+        find.descendant(of: find.text('双人对战'), matching: find.byType(RichText)),
+      );
+      expect(text.text.style?.color?.computeLuminance(), greaterThan(0.5));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('竖屏浮层不叠球台，保持原有底板', (tester) async {
+    await pumpGame(tester, const Size(390, 844));
+    final dock = find.ancestor(of: find.byType(PowerControl), matching: find.byType(HudSurface));
+    expect(tester.widget<HudSurface>(dock).opacity, 0.94);
+    final material = tester.widget<Material>(
+      find.descendant(of: dock, matching: find.byType(Material)).first,
+    );
+    expect(material.color!.a, closeTo(0.94, 0.001));
+  });
+
+  testWidgets('横屏练习工具条的按钮同样只留 5% 底板', (tester) async {
+    await pumpGame(tester, const Size(844, 390), mode: GameMode.practice);
+    expect(tester.widget<PracticeToolbar>(find.byType(PracticeToolbar)).translucent, isTrue);
+    final chip = tester.widgetList<Material>(
+      find.descendant(of: find.byType(PracticeToolbar), matching: find.byType(Material)),
+    );
+    expect(chip.first.color!.a, closeTo(HudSurface.immersiveOpacity, 0.001));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('横屏练习工具条让开顶部浮层', (tester) async {
     await pumpGame(tester, const Size(568, 320), mode: GameMode.practice);
     final header = tester.getRect(find.byType(GameHeader));

@@ -12,11 +12,14 @@ class HudSurface extends StatelessWidget {
     this.opacity = 0.94,
   });
 
+  /// 沉浸布局叠在球台上时的底板不透明度：只留一抹 5% 的提示。
+  static const double immersiveOpacity = 0.05;
+
   final Widget child;
   final EdgeInsets padding;
   final double radius;
 
-  /// 底板不透明度；沉浸布局叠在球台上时调低，露出球台。
+  /// 底板不透明度；沉浸布局叠在球台上时调低，几乎完全露出球台。
   final double opacity;
 
   @override

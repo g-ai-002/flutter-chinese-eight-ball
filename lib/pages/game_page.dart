@@ -15,6 +15,7 @@ import '../flame/table_pointer.dart';
 import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../services/match_history_service.dart';
+import '../theme/app_theme.dart';
 import 'game_hint.dart';
 import 'game_layout.dart';
 import 'help_page.dart';
@@ -211,70 +212,78 @@ class _GamePageState extends State<GamePage> {
         final layout = GameLayout(constraints.biggest);
         TableOrientation.sync(constraints.biggest);
         final hint = gameHint(_controller);
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      radius: 0.95,
-                      colors: [theme.colorScheme.surface, theme.scaffoldBackgroundColor],
+        // 5% 底板铺在深色台呢上，浮层换用深色主题的浅色文字与黄铜控件。
+        final hudTheme = layout.immersive
+            ? buildDarkTheme(fontFamily: theme.textTheme.bodyMedium?.fontFamily)
+            : theme;
+        final hudOpacity = layout.immersive ? HudSurface.immersiveOpacity : 0.94;
+        return Theme(
+          data: hudTheme,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        radius: 0.95,
+                        colors: [theme.colorScheme.surface, theme.scaffoldBackgroundColor],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Positioned.fromRect(rect: layout.tableRect, child: _buildTable(game, layout)),
-            Positioned.fromRect(
-              rect: layout.header,
-              child: GameHeader(
-                controller: _controller,
-                title: widget.mode.label,
-                subtitle: _subtitle,
-                hint: hint,
-                inline: layout.inline || (layout.info == null && !layout.compact),
-                compact: layout.compact,
-                opacity: layout.immersive ? 0.78 : 0.94,
-                restartLabel: restartLabel,
-                onBack: () => Navigator.of(context).maybePop(),
-                onHelp: _openHelp,
-                onRestart: _confirmRestart,
-                onPanel: () => setState(() => _panelOpen = !_panelOpen),
-              ),
-            ),
-            if (layout.info != null)
+              Positioned.fromRect(rect: layout.tableRect, child: _buildTable(game, layout)),
               Positioned.fromRect(
-                rect: layout.info!,
-                child: GameInfoPill(controller: _controller, hint: hint),
-              ),
-            Positioned.fromRect(
-              rect: layout.dock,
-              child: HudSurface(
-                padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
-                opacity: layout.immersive ? 0.78 : 0.94,
-                child: PowerControl(
-                  power: _controller.power,
-                  onPowerChanged: _controller.setPower,
-                  onAimLeft: _controller.canAim ? () => _controller.adjustAim(-0.006) : null,
-                  onAimRight: _controller.canAim ? () => _controller.adjustAim(0.006) : null,
-                  onShoot: _controller.shoot,
-                  canShoot: _controller.canShoot,
-                  singleRow: layout.singleRow,
-                ),
-              ),
-            ),
-            if (_panelOpen)
-              Positioned.fromRect(
-                rect: layout.panel,
-                child: GameSidePanel(
+                rect: layout.header,
+                child: GameHeader(
                   controller: _controller,
-                  mode: widget.mode,
+                  title: widget.mode.label,
+                  subtitle: _subtitle,
                   hint: hint,
-                  onClose: () => setState(() => _panelOpen = false),
+                  inline: layout.inline || (layout.info == null && !layout.compact),
+                  compact: layout.compact,
+                  opacity: hudOpacity,
+                  restartLabel: restartLabel,
+                  onBack: () => Navigator.of(context).maybePop(),
+                  onHelp: _openHelp,
+                  onRestart: _confirmRestart,
+                  onPanel: () => setState(() => _panelOpen = !_panelOpen),
                 ),
               ),
-          ],
+              if (layout.info != null)
+                Positioned.fromRect(
+                  rect: layout.info!,
+                  child: GameInfoPill(controller: _controller, hint: hint),
+                ),
+              Positioned.fromRect(
+                rect: layout.dock,
+                child: HudSurface(
+                  padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+                  opacity: hudOpacity,
+                  child: PowerControl(
+                    power: _controller.power,
+                    onPowerChanged: _controller.setPower,
+                    onAimLeft: _controller.canAim ? () => _controller.adjustAim(-0.006) : null,
+                    onAimRight: _controller.canAim ? () => _controller.adjustAim(0.006) : null,
+                    onShoot: _controller.shoot,
+                    canShoot: _controller.canShoot,
+                    singleRow: layout.singleRow,
+                  ),
+                ),
+              ),
+              if (_panelOpen)
+                Positioned.fromRect(
+                  rect: layout.panel,
+                  child: GameSidePanel(
+                    controller: _controller,
+                    mode: widget.mode,
+                    hint: hint,
+                    onClose: () => setState(() => _panelOpen = false),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -317,6 +326,7 @@ class _GamePageState extends State<GamePage> {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: PracticeToolbar(
+                  translucent: layout.immersive,
                   editing: _controller.isEditingBalls,
                   canUndo: _controller.canUndoPracticeShot,
                   onToggleEdit: () => _controller.isEditingBalls

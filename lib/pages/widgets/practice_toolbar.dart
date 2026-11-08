@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/practice_preset.dart';
+import 'game_hud.dart';
 
 /// 球台左上角的练习浮层：切换摆球、球型与重打上一杆。
 class PracticeToolbar extends StatelessWidget {
@@ -12,6 +13,7 @@ class PracticeToolbar extends StatelessWidget {
     required this.onUndo,
     this.onPreset,
     this.selectedPreset,
+    this.translucent = false,
   });
 
   final bool editing;
@@ -20,6 +22,9 @@ class PracticeToolbar extends StatelessWidget {
   final VoidCallback onUndo;
   final ValueChanged<PracticePreset>? onPreset;
   final PracticePreset? selectedPreset;
+
+  /// 沉浸布局叠在球台上时只留 5% 底板。
+  final bool translucent;
 
   Future<void> _pickPreset(BuildContext context) async {
     final preset = await showModalBottomSheet<PracticePreset>(
@@ -55,15 +60,22 @@ class PracticeToolbar extends StatelessWidget {
           label: editing ? '完成摆球' : '摆球',
           active: editing,
           onTap: onToggleEdit,
+          translucent: translucent,
         ),
         const SizedBox(width: 6),
         _ToolChip(
           icon: Icons.grid_view,
           label: '球型',
           onTap: onPreset == null ? null : () => _pickPreset(context),
+          translucent: translucent,
         ),
         const SizedBox(width: 6),
-        _ToolChip(icon: Icons.undo, label: '重打', onTap: canUndo ? onUndo : null),
+        _ToolChip(
+          icon: Icons.undo,
+          label: '重打',
+          onTap: canUndo ? onUndo : null,
+          translucent: translucent,
+        ),
       ],
     );
   }
@@ -75,12 +87,14 @@ class _ToolChip extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.active = false,
+    this.translucent = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
   final bool active;
+  final bool translucent;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +104,9 @@ class _ToolChip extends StatelessWidget {
         ? colors.onPrimary
         : (enabled ? colors.onSurface : colors.onSurfaceVariant);
     return Material(
-      color: active ? colors.primary : colors.surface.withValues(alpha: 0.92),
+      color: active
+          ? colors.primary
+          : colors.surface.withValues(alpha: translucent ? HudSurface.immersiveOpacity : 0.92),
       borderRadius: BorderRadius.circular(18),
       elevation: 2,
       child: InkWell(

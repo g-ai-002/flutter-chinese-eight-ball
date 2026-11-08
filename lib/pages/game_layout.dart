@@ -111,7 +111,6 @@ class GameLayout {
   late final Rect dock;
   late final Rect tableRect;
   late final Size tableSize;
-  late final double panelWidth;
 
   /// 可收起的球局浮层区域，叠在球台上方。
   late final Rect panel;
@@ -147,8 +146,8 @@ class GameLayout {
 
   /// 球局浮层贴在右侧，宽度上限 320，高度夹在顶部条与操作条之间。
   Rect _panelRect(double top, double bottom) {
-    panelWidth = math.max(0.0, math.min(panelMaxWidth, page.width - pagePadding * 2 - 24));
-    final left = math.max(pagePadding, page.width - pagePadding - panelWidth);
+    final width = math.max(0.0, math.min(panelMaxWidth, page.width - pagePadding * 2 - 24));
+    final left = math.max(pagePadding, page.width - pagePadding - width);
     return Rect.fromLTRB(
       left,
       top,
