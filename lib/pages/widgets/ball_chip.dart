@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../theme/table_skin.dart';
 
-/// 迷你球图标：与台面球体配色一致，花色球带白色横带。
+/// 迷你球图标：与台面球体配色一致，花色球白色球身配彩色球带。
+///
+/// 号码白底缩到球径的 43%，球带占球径的 54% 且边缘清晰，缩小到 18 像素时
+/// 仍能一眼区分花色球与全色球。
 class BallChip extends StatelessWidget {
   const BallChip({super.key, required this.id, this.size = 20});
 
   final int id;
   final double size;
+
+  static const Color _ivory = Color(0xFFF8F4E8);
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +21,7 @@ class BallChip extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isStripe ? const Color(0xFFF8F4E8) : base,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.black.withValues(alpha: 0.18)),
         boxShadow: [
@@ -29,11 +32,10 @@ class BallChip extends StatelessWidget {
           ),
         ],
         gradient: isStripe
-            ? LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [const Color(0xFFF8F4E8), base, base, const Color(0xFFF8F4E8)],
-                stops: const [0, 0.28, 0.72, 1],
+            ? RadialGradient(
+                center: const Alignment(-0.35, -0.4),
+                radius: 1.1,
+                colors: [_ivory, _ivory, Color.lerp(_ivory, Colors.black, 0.18)!],
               )
             : RadialGradient(
                 center: const Alignment(-0.35, -0.4),
@@ -45,19 +47,53 @@ class BallChip extends StatelessWidget {
                 ],
               ),
       ),
-      child: Container(
-        width: size * 0.5,
-        height: size * 0.5,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(color: Color(0xFFF8F4E8), shape: BoxShape.circle),
-        child: Text(
-          '$id',
-          style: TextStyle(
-            fontSize: size * 0.3,
-            height: 1,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF1B1B1B),
-          ),
+      child: ClipOval(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (isStripe)
+              Center(
+                child: FractionallySizedBox(
+                  heightFactor: 0.54,
+                  widthFactor: 1.0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.lerp(base, Colors.white, 0.35)!,
+                          base,
+                          Color.lerp(base, Colors.black, 0.35)!,
+                        ],
+                        stops: const [0, 0.55, 1],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            Center(
+              child: Container(
+                width: size * 0.43,
+                height: size * 0.43,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _ivory,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.12), width: 0.5),
+                ),
+                child: Text(
+                  '$id',
+                  style: TextStyle(
+                    fontSize: size * 0.28,
+                    height: 1,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1B1B1B),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
