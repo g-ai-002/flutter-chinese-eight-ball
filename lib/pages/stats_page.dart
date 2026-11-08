@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../core/match_stats.dart';
 import '../services/match_history_service.dart';
+import 'widgets/empty_state.dart';
 import 'widgets/section_card.dart';
 import 'widgets/stats_daily.dart';
 import 'widgets/stats_difficulty_list.dart';
-import 'widgets/stats_empty.dart';
 import 'widgets/stats_recent_form.dart';
 import 'widgets/stats_summary_grid.dart';
 import 'widgets/stats_trend.dart';
@@ -49,7 +49,11 @@ class _StatsPageState extends State<StatsPage> {
             child: stats == null
                 ? const Center(child: CircularProgressIndicator())
                 : stats.isEmpty
-                ? const StatsEmpty()
+                ? const EmptyState(
+                    icon: Icons.query_stats_outlined,
+                    title: '还没有可统计的对局',
+                    subtitle: '完成一局人机或双人对战后，这里会展示胜率、杆数与进球表现。',
+                  )
                 : _StatsBody(stats: stats),
           ),
         ),

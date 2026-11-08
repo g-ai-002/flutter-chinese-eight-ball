@@ -8,6 +8,7 @@ import '../services/match_history_service.dart';
 import 'replay_page.dart';
 import 'stats_page.dart';
 import 'widgets/floating_message.dart';
+import 'widgets/empty_state.dart';
 import 'widgets/history_card.dart';
 
 /// 最近对局：展示本机保存的对局结果，点击进入逐杆回放。
@@ -119,7 +120,13 @@ class _HistoryPageState extends State<HistoryPage> {
     if (records == null) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (records.isEmpty) return const _EmptyHistory();
+    if (records.isEmpty) {
+      return const EmptyState(
+        icon: Icons.movie_filter_outlined,
+        title: '还没有对局记录',
+        subtitle: '完成一局人机或双人对战后，会自动保存逐杆回放。',
+      );
+    }
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       itemCount: records.length + 1,
@@ -133,42 +140,6 @@ class _HistoryPageState extends State<HistoryPage> {
           onDelete: () => _remove(record),
         );
       },
-    );
-  }
-}
-
-class _EmptyHistory extends StatelessWidget {
-  const _EmptyHistory();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.movie_filter_outlined,
-              size: 46,
-              color: colors.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-            const SizedBox(height: 14),
-            Text('还没有对局记录', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 6),
-            Text(
-              '完成一局人机或双人对战后，会自动保存逐杆回放。',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                height: 1.6,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
