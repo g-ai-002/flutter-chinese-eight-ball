@@ -66,24 +66,17 @@ class HomePage extends StatelessWidget {
                           compact: heroCompact,
                         ),
                         const SizedBox(height: 26),
-                        if (twoColumns)
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              for (final entry in entries)
-                                SizedBox(width: (contentWidth - 12) / 2, child: entry),
-                            ],
-                          )
-                        else
-                          Column(
-                            children: [
-                              for (var i = 0; i < entries.length; i++) ...[
-                                if (i > 0) const SizedBox(height: 12),
-                                entries[i],
-                              ],
-                            ],
-                          ),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            for (final entry in entries)
+                              SizedBox(
+                                width: twoColumns ? (contentWidth - 12) / 2 : contentWidth,
+                                child: entry,
+                              ),
+                          ],
+                        ),
                         const SizedBox(height: 22),
                         Text(
                           'v${AppConstants.version} · 本地运行，无需联网',
