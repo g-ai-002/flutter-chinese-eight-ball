@@ -63,10 +63,19 @@ class BallPainter {
   }
 
   ui.Picture _ball(BallState ball, double radius) => _record((canvas) {
+    paintShape(canvas, ball, radius);
+  });
+
+  /// 在原点绘制单颗球：全色球通体着色，花色球白色球身配彩色球带。
+  ///
+  /// 两种球都按「球号 + 半径」缓存显示列表，位置变化只做画布平移。
+  void paintShape(Canvas canvas, BallState ball, double radius) {
     const center = Offset.zero;
-    final base = ball.isCue ? const Color(0xFFF7F3E7) : ballColorOf(ball.id);
-    final highlighted = Color.lerp(base, Colors.white, ball.isCue ? 0.2 : 0.5)!;
-    final shaded = Color.lerp(base, Colors.black, 0.42)!;
+    final accent = ball.isCue ? const Color(0xFFF7F3E7) : ballColorOf(ball.id);
+    final striped = ball.kind == BallKind.stripe;
+    final body = striped ? const Color(0xFFF7F3E7) : accent;
+    final highlighted = Color.lerp(body, Colors.white, ball.isCue ? 0.2 : 0.5)!;
+    final shaded = Color.lerp(body, Colors.black, striped ? 0.3 : 0.42)!;
     canvas.drawCircle(
       center,
       radius,
@@ -74,11 +83,11 @@ class BallPainter {
         ..shader = ui.Gradient.radial(
           center - Offset(radius * 0.32, radius * 0.36),
           radius * 1.55,
-          [highlighted, base, shaded],
+          [highlighted, body, shaded],
           [0, 0.52, 1],
         ),
     );
-    if (ball.kind == BallKind.stripe) _stripe(canvas, center, radius, base);
+    if (ball.kind == BallKind.stripe) _stripe(canvas, center, radius, accent);
     if (ball.isCue) {
       canvas.drawCircle(
         center - Offset(radius * 0.3, radius * 0.34),
@@ -99,19 +108,23 @@ class BallPainter {
         ..strokeCap = StrokeCap.round
         ..color = Colors.white.withValues(alpha: 0.28),
     );
-  });
+  }
 
-  void _stripe(Canvas canvas, Offset center, double radius, Color base) {
+  void _stripe(Canvas canvas, Offset center, double radius, Color accent) {
     canvas.save();
     canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius)));
-    final band = Rect.fromCenter(center: center, width: radius * 2.1, height: radius * 1.12);
+    final band = Rect.fromCenter(center: center, width: radius * 2.1, height: radius * 1.06);
     canvas.drawRect(
       band,
       Paint()
         ..shader = ui.Gradient.linear(
           band.topLeft,
           band.bottomRight,
-          [Color.lerp(base, Colors.white, 0.35)!, base, Color.lerp(base, Colors.black, 0.3)!],
+          [
+            Color.lerp(accent, Colors.white, 0.35)!,
+            accent,
+            Color.lerp(accent, Colors.black, 0.35)!,
+          ],
           [0, 0.55, 1],
         ),
     );
