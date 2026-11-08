@@ -77,7 +77,7 @@
   - [x] 顺带移除无人引用的 `SettingsProvider.aiTuning`，清台球数直接内联计算，源码 9998 行仍低于 10000 行上限
   - [x] 补充按玩家记忆、AI 不覆盖玩家力度、重新开球归位用例（280 个用例），静态分析零告警
   - [x] 版本号升级至 0.7.11，README 与规划同步
-  - [ ] 三端产物发布（Android / Windows / Web），关闭 Issue #6
+  - [x] 三端产物已发布（Android / Windows / Web），关闭 Issue #6
 
 ### v0.7.10 (PATCH) — 2026-11-08
 
