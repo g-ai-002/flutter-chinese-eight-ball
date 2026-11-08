@@ -15,7 +15,7 @@ String gameHint(MatchController controller) {
         : '已指定 ${TableGeometry.pocketNames[called]} · 调整力度后击球';
   }
   return switch (controller.phase) {
-    MatchPhase.gameOver => '对局结束',
+    MatchPhase.gameOver => '${controller.matchTitle} · 对局结束',
     MatchPhase.shooting => '球在运动中…',
     MatchPhase.aiThinking => '电脑思考中…',
     MatchPhase.placingCue => '自由球：拖动母球到合法位置',

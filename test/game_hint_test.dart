@@ -1,5 +1,6 @@
 import 'package:chinese_eight_ball/core/ball.dart';
 import 'package:chinese_eight_ball/core/match_controller.dart';
+import 'package:chinese_eight_ball/core/vec.dart';
 import 'package:chinese_eight_ball/pages/game_hint.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,6 +43,35 @@ void main() {
       ..setPower(0.9)
       ..shoot();
     expect(gameHint(controller), contains('运动中'));
+  });
+
+  test('对局结束后提示内展示获胜方，避免球台看起来还在对局', () {
+    final controller = MatchController(
+      mode: GameMode.twoPlayers,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+    _prepareOnEight(controller);
+
+    for (final ball in controller.balls) {
+      if (ball.kind == BallKind.solid || ball.kind == BallKind.stripe) ball.active = false;
+    }
+    final eight = controller.balls.firstWhere((ball) => ball.isEight);
+    eight.position = const Vec2(0.15, 0.15);
+    controller.cueBall.position = const Vec2(0.5, 0.5);
+    controller
+      ..setAimAngle(angleOf(controller.cuePosition, eight.position))
+      ..setPower(0.5);
+    controller.setCalledPocket(0);
+    controller.shoot();
+    var ticks = 0;
+    while (controller.phase == MatchPhase.shooting && ticks < 4000) {
+      controller.tick(1 / 60);
+      ticks++;
+    }
+
+    expect(gameHint(controller), contains('玩家一获胜'));
+    expect(gameHint(controller), contains('对局结束'));
   });
 }
 

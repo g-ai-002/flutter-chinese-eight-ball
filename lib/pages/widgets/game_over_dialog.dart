@@ -28,34 +28,38 @@ class GameOverDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return AlertDialog(
-      icon: Icon(
-        playerWin ? Icons.emoji_events_outlined : Icons.sports_bar_outlined,
-        color: playerWin ? appGold : theme.colorScheme.primary,
-        size: 30,
-      ),
-      title: Text(title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(reason, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 10),
-          Text(
-            '共 $shots 杆',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-          ),
+    // 终局结果是唯一出口，系统返回键不能把弹窗关掉留下无法继续的球台。
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        icon: Icon(
+          playerWin ? Icons.emoji_events_outlined : Icons.sports_bar_outlined,
+          color: playerWin ? appGold : theme.colorScheme.primary,
+          size: 30,
+        ),
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(reason, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 10),
+            Text(
+              '共 $shots 杆',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: onHome, child: const Text('返回首页')),
+          if (onReplay != null)
+            OutlinedButton.icon(
+              onPressed: onReplay,
+              icon: const Icon(Icons.movie_filter_outlined, size: 18),
+              label: const Text('查看回放'),
+            ),
+          FilledButton(onPressed: onRestart, child: const Text('再来一局')),
         ],
       ),
-      actions: [
-        TextButton(onPressed: onHome, child: const Text('返回首页')),
-        if (onReplay != null)
-          OutlinedButton.icon(
-            onPressed: onReplay,
-            icon: const Icon(Icons.movie_filter_outlined, size: 18),
-            label: const Text('查看回放'),
-          ),
-        FilledButton(onPressed: onRestart, child: const Text('再来一局')),
-      ],
     );
   }
 }

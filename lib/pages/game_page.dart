@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,7 @@ import '../flame/eight_ball_game.dart';
 import '../flame/table_layout.dart';
 import '../flame/table_pointer.dart';
 import '../providers/settings_provider.dart';
+import '../services/log_service.dart';
 import '../services/match_history_service.dart';
 import 'game_hint.dart';
 import 'game_layout.dart';
@@ -105,7 +108,8 @@ class _GamePageState extends State<GamePage> {
     final playerWin = widget.mode == GameMode.twoPlayers || winner == widget.humanSide;
     final title = _controller.matchTitle;
     final record = _controller.finishedRecord;
-    await _saveRecord(record);
+    // 结果弹窗不能被存储写入拖住：记录失败只记日志，终局结果照常展示。
+    unawaited(_saveRecord(record));
     if (!mounted) return;
     await showDialog<void>(
       context: context,
@@ -134,8 +138,12 @@ class _GamePageState extends State<GamePage> {
   /// 同一场终局只保存一次，回放后重新打开终局弹窗不会重复写入。
   Future<void> _saveRecord(MatchRecord? record) async {
     if (record == null || _savedRecord?.id == record.id) return;
-    await MatchHistoryService.instance.add(record);
-    _savedRecord = record;
+    try {
+      await MatchHistoryService.instance.add(record);
+      _savedRecord = record;
+    } catch (error) {
+      LogService.warning('保存对局记录失败: $error');
+    }
   }
 
   Future<void> _openReplay(BuildContext dialogContext, MatchRecord record) async {

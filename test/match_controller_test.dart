@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:chinese_eight_ball/core/ai.dart';
 import 'package:chinese_eight_ball/core/ball.dart';
 import 'package:chinese_eight_ball/core/match_controller.dart';
@@ -89,6 +91,30 @@ void main() {
 
     expect(controller.placeCue(const Vec2(0.01, 0.01)), isFalse);
     expect(controller.phase, MatchPhase.placingCue);
+  });
+
+  test('AI 攻打黑八获胜后立即终局，后续 AI 行动被忽略', () async {
+    final controller = MatchController(
+      mode: GameMode.vsAi,
+      autoPlayAi: false,
+      random: math.Random(0),
+    );
+    addTearDown(controller.dispose);
+    _prepareAiOnEight(controller);
+
+    await controller.playAiTurn();
+    runToRest(controller);
+
+    expect(controller.phase, MatchPhase.gameOver);
+    expect(controller.rules.over, isTrue);
+    expect(controller.rules.winner, 1);
+    expect(controller.matchTitle, '电脑获胜');
+    expect(controller.finishedRecord, isNotNull);
+
+    final shots = controller.rules.shotNumber;
+    await controller.playAiTurn();
+    expect(controller.phase, MatchPhase.gameOver);
+    expect(controller.rules.shotNumber, shots, reason: '终局后 AI 不应再出杆');
   });
 
   test('重新开球恢复初始状态', () {
@@ -328,4 +354,21 @@ void _prepareOnEight(MatchController controller) {
     if (ball.kind == BallKind.solid) ball.active = false;
   }
   controller.setAimAngle(angleOf(controller.cuePosition, Vec2.zero));
+}
+
+/// 构造「AI 已清台、黑八正对左上角袋」的球局，让 AI 一杆制胜。
+void _prepareAiOnEight(MatchController controller) {
+  final rules = controller.rules;
+  rules
+    ..isBreak = false
+    ..tableOpen = false
+    ..current = 1;
+  rules.groups[0] = PlayerGroup.solids;
+  rules.groups[1] = PlayerGroup.stripes;
+  for (final ball in controller.balls) {
+    if (ball.kind == BallKind.solid || ball.kind == BallKind.stripe) ball.active = false;
+  }
+  controller.balls.firstWhere((ball) => ball.isEight).position = const Vec2(0.15, 0.15);
+  controller.cueBall.position = const Vec2(0.5, 0.5);
+  controller.setAimAngle(angleOf(controller.cuePosition, const Vec2(0.15, 0.15)));
 }

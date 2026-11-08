@@ -326,6 +326,8 @@ class MatchController extends ChangeNotifier {
     );
 
     if (ruling.gameOver) {
+      // 终局后作废所有排队中的 AI 行动，对手获胜也不会再出现击球或思考。
+      _generation++;
       _phase = MatchPhase.gameOver;
       _finishedRecord = _recorder.finish(
         winner: ruling.winner ?? 0,
@@ -429,7 +431,7 @@ class MatchController extends ChangeNotifier {
   }
 
   void _scheduleAiTurn() {
-    if (!autoPlayAi) return;
+    if (!autoPlayAi || _rules.over || _phase == MatchPhase.gameOver) return;
     final generation = _generation;
     Future<void>.delayed(aiThinkDelay, () {
       if (_disposed || generation != _generation) return;
