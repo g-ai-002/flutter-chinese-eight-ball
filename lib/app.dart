@@ -40,10 +40,10 @@ class _EightBallAppState extends State<EightBallApp> with WidgetsBindingObserver
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
         MusicService.pauseForLifecycle();
         break;
       case AppLifecycleState.inactive:
-      case AppLifecycleState.detached:
         break;
     }
   }

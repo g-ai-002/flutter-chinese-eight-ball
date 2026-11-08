@@ -5,9 +5,9 @@ import '../flame/table_layout.dart';
 
 /// 对局页的浮层几何。
 ///
-/// 竖向空间充足时在球台下方留出悬浮提示条；横屏手机、分屏与矮窗口进入紧凑
-/// 模式，提示内联到顶部条，球台独占中间区域。顶部条、操作条与球台尺寸只由
-/// 页面尺寸决定，回合与提示文案的长度不参与计算。
+/// 球台始终显示在页面正中，顶部信息条、球局浮层与底部操作条都叠在四周；
+/// 竖向空间充足时提示条悬浮在球台上方，宽屏与紧凑布局把提示内联到顶部条。
+/// 浮层高度只由页面尺寸决定，回合与提示文案的长度不参与计算。
 class GameLayout {
   GameLayout(this.page) {
     compact = page.height < compactHeight;
@@ -33,23 +33,17 @@ class GameLayout {
       math.max(pagePadding, page.width - pagePadding),
       math.max(top, dock.top - gap),
     );
-    // 只有竖向空间充足时才为提示条预留位置，矮窗口把提示交给顶部条。
-    final withInfo = !compact && !inline;
-    final tableArea = withInfo
-        ? Rect.fromLTRB(
-            core.left,
-            core.top,
-            core.right,
-            math.max(core.top, core.bottom - infoHeight - gap),
-          )
-        : core;
-    tableSize = TableLayout.fit(tableArea.size);
-    tableRect = Rect.fromCenter(
-      center: tableArea.center,
-      width: tableSize.width,
-      height: tableSize.height,
+    tableSize = TableLayout.fit(core.size);
+    // 球台放在页面正中，与浮层冲突时才回落到可用区域内。
+    tableRect = _clamp(
+      Rect.fromCenter(
+        center: Offset(page.width / 2, page.height / 2),
+        width: tableSize.width,
+        height: tableSize.height,
+      ),
+      core,
     );
-    info = withInfo ? _infoRect(core, below: tableRect.bottom + gap) : null;
+    info = _infoRect(core);
     panelWidth = math.max(0.0, math.min(panelMaxWidth, page.width - pagePadding * 2 - 24));
     final panelLeft = math.max(pagePadding, page.width - pagePadding - panelWidth);
     panel = Rect.fromLTRB(
@@ -72,7 +66,7 @@ class GameLayout {
   static const double dockStackCompactHeight = 96;
   static const double panelMaxWidth = 320;
 
-  /// 信息条内联球组与提示的最小宽度，窄于此宽度改为球台下方悬浮提示条。
+  /// 信息条内联球组与提示的最小宽度。
   static const double inlineWidth = 800;
 
   /// 力度控制单行排布的最小宽度。
@@ -86,7 +80,7 @@ class GameLayout {
 
   final Size page;
 
-  /// 矮屏紧凑布局：顶部条与操作条压缩，提示条内联到顶部条。
+  /// 矮屏紧凑布局：顶部条与操作条压缩，提示内联到顶部条。
   late final bool compact;
   late final Rect header;
   late final Rect dock;
@@ -97,7 +91,7 @@ class GameLayout {
   /// 可收起的球局浮层区域，叠在球台上方。
   late final Rect panel;
 
-  /// 球台下方的悬浮提示条；紧凑模式与宽屏内联时为空。
+  /// 悬浮在球台上方的提示条；紧凑模式、宽屏内联与空间不足时为空。
   late final Rect? info;
 
   double get contentWidth => math.max(0.0, page.width - pagePadding * 2);
@@ -106,11 +100,36 @@ class GameLayout {
 
   bool get singleRow => page.width >= (compact ? compactSingleRowWidth : singleRowWidth);
 
-  /// 提示条贴在球台下沿；球台较高时回落到操作条上方。
-  Rect _infoRect(Rect core, {double? below}) {
-    final width = math.max(0.0, math.min(core.width, 640.0));
-    final bottom = core.bottom - infoHeight;
-    final top = below == null ? bottom : math.min(bottom, below);
-    return Rect.fromLTWH(core.center.dx - width / 2, math.max(core.top, top), width, infoHeight);
+  /// 横屏相对竖屏能给球台带来的面积倍数，用于判断是否需要自动横屏。
+  static double landscapeGain(Size page) {
+    final portrait = GameLayout(page).tableSize;
+    final landscape = GameLayout(Size(page.height, page.width)).tableSize;
+    final base = portrait.width * portrait.height;
+    if (base <= 0) return 1;
+    return landscape.width * landscape.height / base;
+  }
+
+  Rect _clamp(Rect rect, Rect bounds) {
+    final maxLeft = math.max(bounds.left, bounds.right - rect.width);
+    final maxTop = math.max(bounds.top, bounds.bottom - rect.height);
+    return Rect.fromLTWH(
+      math.min(math.max(rect.left, bounds.left), maxLeft),
+      math.min(math.max(rect.top, bounds.top), maxTop),
+      rect.width,
+      rect.height,
+    );
+  }
+
+  /// 提示条贴在球台上沿，不占用球台空间；上方放不下时交给顶部条内联。
+  Rect? _infoRect(Rect core) {
+    if (inline || compact) return null;
+    if (tableRect.top - core.top < infoHeight + gap) return null;
+    final width = math.min(core.width, 640.0);
+    return Rect.fromLTWH(
+      core.center.dx - width / 2,
+      tableRect.top - gap - infoHeight,
+      width,
+      infoHeight,
+    );
   }
 }

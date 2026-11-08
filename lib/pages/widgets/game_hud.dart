@@ -147,9 +147,9 @@ class GameHeader extends StatelessWidget {
   }
 }
 
-/// 球台下方的悬浮提示条：回合、上一杆、球组与当前提示。
+/// 球台上方的悬浮提示条：回合、上一杆、球组与当前提示。
 ///
-/// 三行内容高度固定，文案为空或变长都不会改变高度。
+/// 三行内容高度固定，文案为空或变长都不会改变高度，也不会挤动球台。
 class GameInfoPill extends StatelessWidget {
   const GameInfoPill({super.key, required this.controller, required this.hint});
 

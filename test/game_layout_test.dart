@@ -3,11 +3,13 @@ import 'package:chinese_eight_ball/core/match_controller.dart';
 import 'package:chinese_eight_ball/flame/table_layout.dart';
 import 'package:chinese_eight_ball/pages/game_layout.dart';
 import 'package:chinese_eight_ball/pages/game_page.dart';
+import 'package:chinese_eight_ball/pages/table_orientation.dart';
 import 'package:chinese_eight_ball/pages/widgets/game_hud.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:chinese_eight_ball/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,6 +62,7 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     StorageService.resetForTests();
+    TableOrientation.resetForTests();
   });
 
   group('对局页浮层几何', () {
@@ -118,14 +121,15 @@ void main() {
       }
     });
 
-    test('窄屏在球台下方留出提示条，宽屏把提示内联到顶部条', () {
+    test('窄屏把提示条悬浮在球台上方，宽屏把提示内联到顶部条', () {
       final phone = GameLayout(const Size(390, 844));
       expect(phone.inline, isFalse);
       expect(phone.compact, isFalse);
       expect(phone.info, isNotNull);
       expect(phone.singleRow, isFalse);
-      expect(phone.info!.top, closeTo(phone.tableRect.bottom + GameLayout.gap, 0.001));
-      expect(phone.info!.bottom, lessThanOrEqualTo(phone.dock.top));
+      expect(phone.info!.bottom, closeTo(phone.tableRect.top - GameLayout.gap, 0.001));
+      expect(phone.info!.top, greaterThanOrEqualTo(phone.header.bottom));
+      expect(phone.tableRect.center.dy, closeTo(phone.page.height / 2, 0.5));
 
       final desktop = GameLayout(const Size(1280, 800));
       expect(desktop.inline, isTrue);
@@ -137,6 +141,14 @@ void main() {
       expect(landscape.inline, isTrue);
       expect(landscape.compact, isTrue);
       expect(landscape.singleRow, isTrue);
+    });
+
+    test('球台在页面正中显示，不被提示条挤偏', () {
+      for (final page in const [Size(390, 844), Size(360, 640), Size(720, 900), Size(800, 1280)]) {
+        final layout = GameLayout(page);
+        expect(layout.tableRect.center.dx, closeTo(page.width / 2, 0.5), reason: '$page 水平未居中');
+        expect(layout.tableRect.center.dy, closeTo(page.height / 2, 0.5), reason: '$page 垂直未居中');
+      }
     });
 
     test('横屏与矮窗口进入紧凑模式，不再预留提示条', () {
@@ -272,4 +284,35 @@ void main() {
       });
     }
   }
+
+  testWidgets('关闭对局页后恢复系统方向，不残留全屏', (tester) async {
+    final calls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (
+      call,
+    ) async {
+      calls.add(call);
+      return null;
+    });
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+
+    await pumpGame(tester, const Size(390, 844));
+    bool sent(String orientation) => calls.any(
+      (call) =>
+          call.method == 'SystemChrome.setPreferredOrientations' &&
+          (call.arguments as List).first == orientation,
+    );
+    expect(sent('DeviceOrientation.landscapeLeft'), isTrue, reason: '窄屏应对局进入横屏');
+
+    calls.clear();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    expect(sent('DeviceOrientation.portraitUp'), isTrue, reason: '离开后应恢复系统方向');
+    expect(calls.any((call) => call.arguments == 'SystemUiMode.edgeToEdge'), isTrue);
+    expect(find.byType(GamePage), findsNothing);
+  });
 }

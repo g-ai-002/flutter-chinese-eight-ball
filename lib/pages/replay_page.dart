@@ -10,6 +10,7 @@ import '../flame/replay_game.dart';
 import '../flame/table_layout.dart';
 import '../providers/settings_provider.dart';
 import '../utils/formatters.dart';
+import 'table_orientation.dart';
 import 'widgets/replay_controls.dart';
 import 'widgets/replay_shot_list.dart';
 import 'widgets/replay_shot_overlay.dart';
@@ -35,6 +36,7 @@ class _ReplayPageState extends State<ReplayPage> {
   @override
   void initState() {
     super.initState();
+    TableOrientation.attach();
     _player = ReplayPlayer(widget.record);
   }
 
@@ -47,6 +49,9 @@ class _ReplayPageState extends State<ReplayPage> {
 
   @override
   void dispose() {
+    _game?.pauseEngine();
+    _game = null;
+    TableOrientation.detach();
     _player.dispose();
     super.dispose();
   }
@@ -102,6 +107,7 @@ class _ReplayPageState extends State<ReplayPage> {
           animation: _player,
           builder: (context, _) => LayoutBuilder(
             builder: (context, constraints) {
+              TableOrientation.sync(constraints.biggest);
               final wide = constraints.maxWidth >= 900 && constraints.maxHeight >= 520;
               return wide ? _buildWide(game, constraints) : _buildNarrow(game, constraints);
             },

@@ -15,6 +15,7 @@ import 'game_hint.dart';
 import 'game_layout.dart';
 import 'help_page.dart';
 import 'replay_page.dart';
+import 'table_orientation.dart';
 import 'widgets/floating_message.dart';
 import 'widgets/game_hud.dart';
 import 'widgets/game_over_dialog.dart';
@@ -57,6 +58,7 @@ class _GamePageState extends State<GamePage> {
   @override
   void initState() {
     super.initState();
+    TableOrientation.attach();
     _controller = MatchController(
       mode: widget.mode,
       difficulty: widget.difficulty,
@@ -79,6 +81,10 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    // 关闭主界面时停掉 Flame 引擎并交还系统方向，避免残留渲染与全屏状态。
+    _game?.pauseEngine();
+    _game = null;
+    TableOrientation.detach();
     _controller
       ..removeListener(_onControllerChanged)
       ..dispose();
@@ -194,6 +200,7 @@ class _GamePageState extends State<GamePage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final layout = GameLayout(constraints.biggest);
+        TableOrientation.sync(constraints.biggest);
         final hint = gameHint(_controller);
         return Stack(
           children: [
@@ -217,7 +224,7 @@ class _GamePageState extends State<GamePage> {
                 title: widget.mode.label,
                 subtitle: _subtitle,
                 hint: hint,
-                inline: layout.inline,
+                inline: layout.inline || (layout.info == null && !layout.compact),
                 compact: layout.compact,
                 restartLabel: restartLabel,
                 onBack: () => Navigator.of(context).maybePop(),
