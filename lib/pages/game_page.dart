@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -224,7 +225,7 @@ class _GamePageState extends State<GamePage> {
                 ),
               ),
             ),
-            Positioned.fromRect(rect: layout.tableRect, child: _buildTable(game, layout.tableSize)),
+            Positioned.fromRect(rect: layout.tableRect, child: _buildTable(game, layout)),
             Positioned.fromRect(
               rect: layout.header,
               child: GameHeader(
@@ -234,6 +235,7 @@ class _GamePageState extends State<GamePage> {
                 hint: hint,
                 inline: layout.inline || (layout.info == null && !layout.compact),
                 compact: layout.compact,
+                opacity: layout.immersive ? 0.78 : 0.94,
                 restartLabel: restartLabel,
                 onBack: () => Navigator.of(context).maybePop(),
                 onHelp: _openHelp,
@@ -250,6 +252,7 @@ class _GamePageState extends State<GamePage> {
               rect: layout.dock,
               child: HudSurface(
                 padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+                opacity: layout.immersive ? 0.78 : 0.94,
                 child: PowerControl(
                   power: _controller.power,
                   onPowerChanged: _controller.setPower,
@@ -283,7 +286,8 @@ class _GamePageState extends State<GamePage> {
     GameMode.practice => '中式黑八 · 自由练习',
   };
 
-  Widget _buildTable(EightBallGame game, Size size) {
+  Widget _buildTable(EightBallGame game, GameLayout layout) {
+    final size = layout.tableSize;
     return SizedBox(
       key: const Key('game-table'),
       width: size.width,
@@ -305,7 +309,10 @@ class _GamePageState extends State<GamePage> {
           if (widget.mode == GameMode.practice)
             Positioned(
               left: 6,
-              top: 6,
+              // 沉浸布局下顶部条叠在球台上，工具条让到它下面。
+              top: layout.immersive
+                  ? math.max(6.0, layout.header.bottom - layout.tableRect.top + 4)
+                  : 6,
               right: 6,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,

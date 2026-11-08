@@ -5,6 +5,8 @@ import 'package:chinese_eight_ball/pages/game_layout.dart';
 import 'package:chinese_eight_ball/pages/game_page.dart';
 import 'package:chinese_eight_ball/pages/table_orientation.dart';
 import 'package:chinese_eight_ball/pages/widgets/game_hud.dart';
+import 'package:chinese_eight_ball/pages/widgets/power_control.dart';
+import 'package:chinese_eight_ball/pages/widgets/practice_toolbar.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:chinese_eight_ball/theme/app_theme.dart';
@@ -56,6 +58,11 @@ Future<void> pumpGame(WidgetTester tester, Size size, {GameMode mode = GameMode.
 
 Size tableSizeOf(WidgetTester tester) => tester.getSize(find.byKey(const Key('game-table')));
 
+/// 球台在一个方向上铺满整页（另一边受球台比例限制）。
+bool fillsPage(GameLayout layout) =>
+    layout.tableSize.width >= layout.page.width - 0.5 ||
+    layout.tableSize.height >= layout.page.height - 0.5;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -67,16 +74,24 @@ void main() {
 
   group('对局页浮层几何', () {
     for (final entry in sizes.entries) {
-      test('${entry.key}：球台贴满中段且不与浮层重叠', () {
+      test('${entry.key}：球台铺满可用区域且不越界', () {
         final page = entry.value;
         final layout = GameLayout(page);
-        for (final hud in [layout.header, layout.dock, if (layout.info != null) layout.info!]) {
-          expect(layout.tableRect.overlaps(hud), isFalse, reason: '${entry.key} 浮层压到球台');
-        }
         expect(layout.tableRect.left, greaterThanOrEqualTo(0));
         expect(layout.tableRect.top, greaterThanOrEqualTo(0));
         expect(layout.tableRect.right, lessThanOrEqualTo(page.width));
         expect(layout.tableRect.bottom, lessThanOrEqualTo(page.height));
+        if (layout.immersive) {
+          // 横屏沉浸：球台吃满整页，浮层半透明叠在球台上下沿。
+          expect(layout.tableSize, TableLayout.fit(page), reason: '${entry.key} 球台没有吃满整页');
+          expect(layout.tableRect.center.dx, closeTo(page.width / 2, 0.5));
+          expect(layout.tableRect.center.dy, closeTo(page.height / 2, 0.5));
+          expect(layout.info, isNull);
+          return;
+        }
+        for (final hud in [layout.header, layout.dock, if (layout.info != null) layout.info!]) {
+          expect(layout.tableRect.overlaps(hud), isFalse, reason: '${entry.key} 浮层压到球台');
+        }
         // 球台至少在一个方向上占满可用区域，另一方向居中留白。
         final core = Rect.fromLTRB(
           GameLayout.pagePadding,
@@ -141,6 +156,8 @@ void main() {
       expect(landscape.inline, isTrue);
       expect(landscape.compact, isTrue);
       expect(landscape.singleRow, isTrue);
+      expect(landscape.immersive, isTrue);
+      expect(landscape.info, isNull);
     });
 
     test('球台在页面正中显示，不被提示条挤偏', () {
@@ -157,10 +174,40 @@ void main() {
         expect(layout.compact, isTrue, reason: '$page 应使用紧凑布局');
         expect(layout.info, isNull, reason: '$page 不应预留提示条');
         expect(layout.header.height, lessThanOrEqualTo(GameLayout.compactHeaderHeight));
-        expect(layout.tableRect.bottom, lessThanOrEqualTo(layout.dock.top));
+        expect(fillsPage(layout), isTrue, reason: '$page 球台应吃满屏幕');
       }
       for (final page in const [Size(390, 844), Size(800, 1280), Size(1280, 800)]) {
         expect(GameLayout(page).compact, isFalse, reason: '$page 不应使用紧凑布局');
+        expect(GameLayout(page).immersive, isFalse, reason: '$page 不应使用沉浸布局');
+      }
+    });
+
+    test('横屏球台吃满整页，面积明显大于为浮层让位的布局', () {
+      for (final page in const [Size(844, 390), Size(640, 360), Size(568, 320)]) {
+        final layout = GameLayout(page);
+        expect(layout.immersive, isTrue, reason: '$page 应进入沉浸布局');
+        // 球台在一个方向上铺满整页，另一边只受球台比例限制。
+        expect(
+          layout.tableSize.width >= page.width - 0.5 ||
+              layout.tableSize.height >= page.height - 0.5,
+          isTrue,
+          reason: '$page 球台没有铺满整页',
+        );
+        final reserved = TableLayout.fit(
+          Size(page.width - 16, page.height - 16 - GameLayout.compactHeaderHeight - 56 - 16),
+        );
+        expect(
+          layout.tableSize.width * layout.tableSize.height,
+          greaterThan(reserved.width * reserved.height * 1.3),
+          reason: '$page 沉浸布局球台提升不足',
+        );
+        // 顶部条与操作条叠在球台上，不改变球台尺寸。
+        expect(layout.header.overlaps(layout.tableRect), isTrue);
+        expect(layout.dock.overlaps(layout.tableRect), isTrue);
+        expect(layout.header.top, closeTo(GameLayout.pagePadding, 0.001));
+        expect(layout.dock.bottom, closeTo(page.height - GameLayout.pagePadding, 0.001));
+        expect(layout.dock.width, lessThanOrEqualTo(GameLayout.dockMaxWidth));
+        expect(layout.dock.center.dx, closeTo(page.width / 2, 0.5));
       }
     });
 
@@ -257,6 +304,51 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  for (final entry in const {
+    '横屏手机': Size(844, 390),
+    '横屏小手机': Size(640, 360),
+    '横屏旧机型': Size(568, 320),
+  }.entries) {
+    testWidgets('${entry.key}：球台吃满屏幕，浮层叠在球台上', (tester) async {
+      await pumpGame(tester, entry.value);
+      final table = tester.getRect(find.byKey(const Key('game-table')));
+      expect(table.left, greaterThanOrEqualTo(0));
+      expect(table.top, greaterThanOrEqualTo(0));
+      expect(table.right, lessThanOrEqualTo(entry.value.width));
+      expect(table.bottom, lessThanOrEqualTo(entry.value.height));
+      // 球台在一个方向上铺满整页，另一边只受球台比例限制。
+      final fills =
+          (table.width - entry.value.width).abs() < 0.5 ||
+          (table.height - entry.value.height).abs() < 0.5;
+      expect(fills, isTrue, reason: '${entry.key} 球台没有吃满屏幕');
+      expect(table.height, greaterThan(entry.value.height * 0.9));
+      // 顶部条与操作条都叠在球台上，球台不再为浮层让位。
+      final header = tester.getRect(find.byType(GameHeader));
+      expect(header.overlaps(table), isTrue);
+      expect(header.top, closeTo(GameLayout.pagePadding, 0.5));
+      expect(tester.getRect(find.byType(PowerControl)).width, lessThanOrEqualTo(704));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('横屏练习工具条让开顶部浮层', (tester) async {
+    await pumpGame(tester, const Size(568, 320), mode: GameMode.practice);
+    final header = tester.getRect(find.byType(GameHeader));
+    final toolbar = tester.getRect(find.byType(PracticeToolbar));
+    expect(toolbar.top, greaterThanOrEqualTo(header.bottom));
+    expect(toolbar.bottom, lessThan(320));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('横屏留白足够时练习工具条不越出球台', (tester) async {
+    await pumpGame(tester, const Size(720, 520), mode: GameMode.practice);
+    final table = tester.getRect(find.byKey(const Key('game-table')));
+    final toolbar = tester.getRect(find.byType(PracticeToolbar));
+    expect(toolbar.top, greaterThanOrEqualTo(table.top));
+    expect(toolbar.bottom, lessThanOrEqualTo(table.bottom));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('练习工具条在窄球台上不越界', (tester) async {
     await pumpGame(tester, const Size(568, 320), mode: GameMode.practice);

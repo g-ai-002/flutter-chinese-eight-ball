@@ -9,17 +9,21 @@ class HudSurface extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     this.radius = 14,
+    this.opacity = 0.94,
   });
 
   final Widget child;
   final EdgeInsets padding;
   final double radius;
 
+  /// 底板不透明度；沉浸布局叠在球台上时调低，露出球台。
+  final double opacity;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Material(
-      color: colors.surface.withValues(alpha: 0.94),
+      color: colors.surface.withValues(alpha: opacity),
       elevation: 3,
       shadowColor: Colors.black.withValues(alpha: 0.25),
       shape: RoundedRectangleBorder(
@@ -47,6 +51,7 @@ class GameHeader extends StatelessWidget {
     required this.onHelp,
     required this.onRestart,
     required this.onPanel,
+    this.opacity = 0.94,
   });
 
   final MatchController controller;
@@ -63,12 +68,16 @@ class GameHeader extends StatelessWidget {
   final VoidCallback onRestart;
   final VoidCallback onPanel;
 
+  /// 底板不透明度；沉浸布局叠在球台上时调低。
+  final double opacity;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     return HudSurface(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      opacity: opacity,
       child: Row(
         children: [
           _HudIcon(icon: Icons.arrow_back, tooltip: '返回', onTap: onBack),

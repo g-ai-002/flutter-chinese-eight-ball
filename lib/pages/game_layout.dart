@@ -7,10 +7,35 @@ import '../flame/table_layout.dart';
 ///
 /// 球台始终显示在页面正中，顶部信息条、球局浮层与底部操作条都叠在四周；
 /// 竖向空间充足时提示条悬浮在球台上方，宽屏与紧凑布局把提示内联到顶部条。
+/// 横屏矮屏进入沉浸布局：球台吃满整页，顶部条与操作条改为半透明浮层叠在
+/// 球台上下沿，不再为浮层让出高度。
 /// 浮层高度只由页面尺寸决定，回合与提示文案的长度不参与计算。
 class GameLayout {
   GameLayout(this.page) {
     compact = page.height < compactHeight;
+    immersive = compact && page.width > page.height;
+    if (immersive) {
+      tableSize = TableLayout.fit(page);
+      tableRect = Rect.fromCenter(
+        center: page.center(Offset.zero),
+        width: tableSize.width,
+        height: tableSize.height,
+      );
+      // 浮层与球台同宽对齐，宽窗口下不会飘到球台两侧的留白里。
+      final width = math.min(contentWidth, tableSize.width);
+      header = Rect.fromLTWH((page.width - width) / 2, pagePadding, width, compactHeaderHeight);
+      final dockWidth = math.min(width, dockMaxWidth);
+      final dockHeight = singleRow ? immersiveDockHeight : dockStackCompactHeight;
+      dock = Rect.fromLTWH(
+        (page.width - dockWidth) / 2,
+        page.height - pagePadding - dockHeight,
+        dockWidth,
+        dockHeight,
+      );
+      info = null;
+      panel = _panelRect(header.bottom + gap, dock.top - gap);
+      return;
+    }
     final dockHeight = singleRow
         ? (compact ? dockCompactHeight : dockRowHeight)
         : (compact ? dockStackCompactHeight : dockStackHeight);
@@ -44,14 +69,7 @@ class GameLayout {
       core,
     );
     info = _infoRect(core);
-    panelWidth = math.max(0.0, math.min(panelMaxWidth, page.width - pagePadding * 2 - 24));
-    final panelLeft = math.max(pagePadding, page.width - pagePadding - panelWidth);
-    panel = Rect.fromLTRB(
-      panelLeft,
-      header.bottom + gap,
-      math.max(panelLeft, page.width - pagePadding),
-      math.max(header.bottom + gap, dock.top - gap),
-    );
+    panel = _panelRect(header.bottom + gap, dock.top - gap);
   }
 
   /// 页面四周留白。
@@ -65,6 +83,10 @@ class GameLayout {
   static const double dockCompactHeight = 56;
   static const double dockStackCompactHeight = 96;
   static const double panelMaxWidth = 320;
+
+  /// 沉浸布局下叠在球台底部的操作条高度与最大宽度。
+  static const double immersiveDockHeight = 48;
+  static const double dockMaxWidth = 720;
 
   /// 信息条内联球组与提示的最小宽度。
   static const double inlineWidth = 800;
@@ -82,6 +104,9 @@ class GameLayout {
 
   /// 矮屏紧凑布局：顶部条与操作条压缩，提示内联到顶部条。
   late final bool compact;
+
+  /// 横屏沉浸布局：球台吃满整页，顶部条与操作条半透明叠在球台上。
+  late final bool immersive;
   late final Rect header;
   late final Rect dock;
   late final Rect tableRect;
@@ -117,6 +142,18 @@ class GameLayout {
       math.min(math.max(rect.top, bounds.top), maxTop),
       rect.width,
       rect.height,
+    );
+  }
+
+  /// 球局浮层贴在右侧，宽度上限 320，高度夹在顶部条与操作条之间。
+  Rect _panelRect(double top, double bottom) {
+    panelWidth = math.max(0.0, math.min(panelMaxWidth, page.width - pagePadding * 2 - 24));
+    final left = math.max(pagePadding, page.width - pagePadding - panelWidth);
+    return Rect.fromLTRB(
+      left,
+      top,
+      math.max(left, page.width - pagePadding),
+      math.max(top, bottom),
     );
   }
 
