@@ -29,51 +29,30 @@ class AiTable {
 
   /// 当前球手的合法目标球：清台后只打黑八，开放球台排除黑八。
   static List<BallState> legalTargets(List<BallState> balls, PlayerGroup? group, bool onEight) {
-    final active = [
-      for (final ball in balls)
-        if (ball.active && !ball.isCue) ball,
-    ];
-    if (onEight) {
-      return [
-        for (final ball in active)
-          if (ball.isEight) ball,
-      ];
-    }
-    if (group == null) {
-      return [
-        for (final ball in active)
-          if (!ball.isEight) ball,
-      ];
-    }
-    final own = [
-      for (final ball in active)
-        if (ball.kind == group.kind) ball,
-    ];
-    if (own.isNotEmpty) return own;
-    return [
-      for (final ball in active)
-        if (ball.isEight) ball,
-    ];
+    if (onEight) return _pick(balls, eight: true);
+    if (group == null) return _pick(balls, eight: false);
+    return _ownOrEight(balls, group.kind);
   }
 
   /// 对手的合法目标球：己方清台后对手要打黑八。
   static List<BallState> opponentTargets(List<BallState> balls, PlayerGroup? group) {
-    if (group == null) {
-      return [
-        for (final ball in balls)
-          if (ball.active && !ball.isCue && !ball.isEight) ball,
-      ];
-    }
-    final kind = group == PlayerGroup.solids ? BallKind.stripe : BallKind.solid;
+    if (group == null) return _pick(balls, eight: false);
+    return _ownOrEight(balls, group == PlayerGroup.solids ? BallKind.stripe : BallKind.solid);
+  }
+
+  /// 台面上仍在场的球；[eight] 为 true 只取黑八，否则排除黑八。
+  static List<BallState> _pick(List<BallState> balls, {required bool eight}) => [
+    for (final ball in balls)
+      if (ball.active && !ball.isCue && ball.isEight == eight) ball,
+  ];
+
+  /// 指定花色的球；本方清台后改打黑八。
+  static List<BallState> _ownOrEight(List<BallState> balls, BallKind kind) {
     final own = [
       for (final ball in balls)
         if (ball.active && !ball.isCue && ball.kind == kind) ball,
     ];
-    if (own.isNotEmpty) return own;
-    return [
-      for (final ball in balls)
-        if (ball.active && ball.isEight) ball,
-    ];
+    return own.isNotEmpty ? own : _pick(balls, eight: true);
   }
 
   /// 评估母球 → 目标球 → 指定袋口的线路；不可行返回 null。
