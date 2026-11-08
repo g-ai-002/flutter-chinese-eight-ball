@@ -26,9 +26,17 @@ class ReplayPlayer extends ChangeNotifier {
   _ReplayState _state = _ReplayState.idle;
   double _pauseLeft = 0;
   int _effectCursor = 0;
+  bool _strikePending = false;
 
   /// 供球台组件取用的撞击与落袋事件。
   final List<ShotEvent> pendingEffects = [];
+
+  /// 取走一次待播出的出杆音效标记；跳杆与终局不发声。
+  bool takeStrike() {
+    if (!_strikePending) return false;
+    _strikePending = false;
+    return true;
+  }
 
   List<BallState> get balls => _simulation.balls;
 
@@ -119,6 +127,7 @@ class ReplayPlayer extends ChangeNotifier {
     _simulation = _snapshot(record, _index)..strike(shot.angle, shot.power);
     _state = _ReplayState.running;
     _pauseLeft = shotPause;
+    _strikePending = true;
   }
 
   void _advance() {

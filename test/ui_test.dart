@@ -14,6 +14,7 @@ import 'package:chinese_eight_ball/pages/settings_page.dart';
 import 'package:chinese_eight_ball/pages/stats_page.dart';
 import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/match_history_service.dart';
+import 'package:chinese_eight_ball/services/sound_service.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:chinese_eight_ball/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -228,6 +229,24 @@ void main() {
     }
     expect(find.byIcon(Icons.replay), findsOneWidget);
     expect(find.text('1 / 1 杆'), findsOneWidget);
+  });
+
+  testWidgets('回放播放时重放出杆与撞击音效', (tester) async {
+    SoundService.reset();
+    SoundService.configure(sound: true, haptics: false);
+    final played = <SoundFeedback>[];
+    SoundService.sink = (feedback, volume) => played.add(feedback);
+    addTearDown(SoundService.reset);
+
+    await pumpPage(tester, ReplayPage(record: sampleReplayRecord()));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    expect(played.first, SoundFeedback.strike);
+    expect(played, contains(SoundFeedback.impact));
   });
 
   testWidgets('双人对局页渲染球台与击球按钮', (tester) async {

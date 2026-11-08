@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import '../core/physics.dart';
 import '../core/replay_player.dart';
 import '../providers/settings_provider.dart';
+import 'shot_audio.dart';
 import 'table_scene.dart';
 
-/// 回放球台：只负责绘制与落袋动画，播放进度由 [ReplayPlayer] 驱动。
+/// 回放球台：绘制球台与落袋动画，并重放出杆、撞击与落袋音效。
 class ReplayTableComponent extends PositionComponent {
   ReplayTableComponent({required this.player, required this.settings});
 
@@ -14,20 +15,22 @@ class ReplayTableComponent extends PositionComponent {
   final SettingsProvider settings;
 
   final TableScene _scene = TableScene();
+  final ShotAudio _audio = ShotAudio();
 
   @override
   void update(double dt) {
     super.update(dt);
     player.tick(dt);
-    _drainEffects();
+    if (player.takeStrike()) _audio.strike();
+    _drainEffects(dt);
     _scene.update(dt);
   }
 
-  void _drainEffects() {
-    if (player.pendingEffects.isEmpty) return;
+  void _drainEffects(double dt) {
+    _audio.drain(player.pendingEffects, dt);
     for (final event in player.pendingEffects) {
       if (event is! BallPocketed) continue;
-      _scene.addPot(event, player.balls.firstWhere((item) => item.id == event.ballId));
+      _scene.addPot(event, player.balls);
     }
     player.pendingEffects.clear();
   }

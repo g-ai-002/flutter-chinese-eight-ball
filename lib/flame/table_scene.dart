@@ -38,7 +38,9 @@ class TableScene {
     _pots.removeWhere((animation) => animation.progress >= 1);
   }
 
-  void addPot(BallPocketed event, BallState ball) {
+  /// 按球号在 [balls] 里取球型，实时对局与回放共用同一段落袋动画。
+  void addPot(BallPocketed event, Iterable<BallState> balls) {
+    final ball = balls.firstWhere((item) => item.id == event.ballId);
     _pots.add(
       PotAnimation(
         from: event.position,

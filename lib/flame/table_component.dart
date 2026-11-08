@@ -7,6 +7,7 @@ import '../core/vec.dart';
 import '../providers/settings_provider.dart';
 import '../services/sound_service.dart';
 import 'painting/aim_painter.dart';
+import 'shot_audio.dart';
 import 'table_layout.dart';
 import 'table_scene.dart';
 
@@ -25,17 +26,15 @@ class TableComponent extends PositionComponent {
 
   final TableScene _scene = TableScene();
   final AimPainter _aimPainter = AimPainter();
+  final ShotAudio _audio = ShotAudio();
 
   MatchPhase _lastPhase = MatchPhase.aiming;
-  double _lastImpactAt = -1;
-  double _time = 0;
 
   @override
   void update(double dt) {
     super.update(dt);
-    _time += dt;
     _handlePhaseSound();
-    _drainEffects();
+    _drainEffects(dt);
     _scene.update(dt);
   }
 
@@ -43,7 +42,7 @@ class TableComponent extends PositionComponent {
     final phase = controller.phase;
     if (phase != _lastPhase) {
       if (phase == MatchPhase.shooting) {
-        SoundService.play(SoundFeedback.strike);
+        _audio.strike();
       } else if (phase == MatchPhase.gameOver) {
         final winner = controller.rules.winner;
         final playerWin = controller.mode == GameMode.twoPlayers || winner == controller.humanSide;
@@ -53,22 +52,11 @@ class TableComponent extends PositionComponent {
     }
   }
 
-  void _drainEffects() {
-    if (controller.pendingEffects.isEmpty) return;
+  void _drainEffects(double dt) {
+    _audio.drain(controller.pendingEffects, dt);
     for (final event in controller.pendingEffects) {
-      switch (event) {
-        case BallImpact():
-          if (_time - _lastImpactAt < 0.04) continue;
-          _lastImpactAt = _time;
-          final volume = (event.strength / 3.2).clamp(0.12, 0.85);
-          SoundService.play(SoundFeedback.impact, volume: volume);
-        case BallPocketed():
-          SoundService.play(SoundFeedback.pocket, volume: 0.85);
-          _scene.addPot(
-            event,
-            controller.simulation.balls.firstWhere((item) => item.id == event.ballId),
-          );
-      }
+      if (event is! BallPocketed) continue;
+      _scene.addPot(event, controller.simulation.balls);
     }
     controller.pendingEffects.clear();
   }

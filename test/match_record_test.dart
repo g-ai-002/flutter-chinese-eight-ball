@@ -316,6 +316,22 @@ void main() {
       expect(player.isPlaying, isTrue);
     });
 
+    test('播放时给出出杆音效标记，跳杆与暂停不出声', () {
+      final player = ReplayPlayer(sampleRecord());
+      expect(player.takeStrike(), isFalse);
+
+      player.play();
+      expect(player.takeStrike(), isTrue);
+      expect(player.takeStrike(), isFalse);
+
+      player.pause();
+      player.tick(1 / 60);
+      expect(player.takeStrike(), isFalse);
+
+      player.seek(0);
+      expect(player.takeStrike(), isFalse);
+    });
+
     test('空记录不崩溃且禁止播放', () {
       final record = sampleRecord();
       final empty = MatchRecord(
