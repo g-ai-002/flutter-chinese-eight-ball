@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/system_ui.dart';
+
 export 'table_skin.dart';
 
 /// 深绿台呢 + 黄铜点缀的视觉基调。
@@ -95,6 +97,7 @@ ThemeData _buildBase({
       scrolledUnderElevation: 0,
       centerTitle: true,
       surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: systemOverlayStyleFor(scaffoldColor),
       toolbarHeight: 52,
       titleTextStyle: TextStyle(
         fontSize: 17,

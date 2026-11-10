@@ -9,6 +9,7 @@ import 'services/music_service.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
+import 'utils/system_ui.dart';
 
 class EightBallApp extends StatefulWidget {
   const EightBallApp({super.key, required this.storage});
@@ -74,10 +75,12 @@ class _EightBallAppState extends State<EightBallApp> with WidgetsBindingObserver
             supportedLocales: const [Locale('zh', 'CN')],
             locale: const Locale('zh', 'CN'),
             // Web 首次点击用于解除浏览器的自动播放限制。
-            builder: (context, child) => Listener(
-              behavior: HitTestBehavior.translucent,
-              onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
-              child: child ?? const SizedBox.shrink(),
+            builder: (context, child) => SystemUiOverlay(
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
             home: const HomePage(),
           );
