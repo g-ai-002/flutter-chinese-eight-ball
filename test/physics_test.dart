@@ -55,6 +55,27 @@ void main() {
       expect(simulation.settled, isTrue);
       expect(simulation.step(1 / 60), isFalse);
     });
+
+    test('静止球不随物理步进漂移', () {
+      final simulation = ShotSimulation(
+        balls: [ball(0, 0.8, 0.635), ball(1, 1.6, 0.3), ball(2, 0.7, 1.0)],
+      );
+      simulation.strike(math.pi, 0.5);
+      final before = [
+        for (final item in simulation.balls.skip(1)) item.position,
+      ];
+
+      for (var i = 0; i < 60; i++) {
+        simulation.step(1 / 120);
+      }
+
+      for (var i = 0; i < before.length; i++) {
+        final rest = simulation.balls[i + 1];
+        expect(rest.position.x, before[i].x);
+        expect(rest.position.y, before[i].y);
+        expect(rest.velocity, Vec2.zero);
+      }
+    });
   });
 
   group('碰撞', () {

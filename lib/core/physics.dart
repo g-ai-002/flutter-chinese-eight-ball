@@ -140,11 +140,17 @@ class ShotSimulation {
   }
 
   void _substep(double dt) {
+    var moving = false;
     for (final ball in balls) {
       if (!ball.active) continue;
-      final p = ball.position, v = ball.velocity;
-      ball.position = Vec2(p.x + v.x * dt, p.y + v.y * dt);
+      final velocity = ball.velocity;
+      // 静止球不会自己移动，跳过积分可以省掉大部分临时向量。
+      if (velocity.x == 0 && velocity.y == 0) continue;
+      final position = ball.position;
+      ball.position = Vec2(position.x + velocity.x * dt, position.y + velocity.y * dt);
+      moving = true;
     }
+    if (!moving) return;
     _resolveBallCollisions();
     _capturePockets();
     _bounceCushions();
@@ -193,6 +199,8 @@ class ShotSimulation {
     const radiusSquared = TableGeometry.pocketRadius * TableGeometry.pocketRadius;
     for (final ball in balls) {
       if (!ball.active) continue;
+      // 静止球不可能在本子步内新进入袋口。
+      if (ball.velocity.x == 0 && ball.velocity.y == 0) continue;
       for (var index = 0; index < TableGeometry.pockets.length; index++) {
         final pocket = TableGeometry.pockets[index];
         if (ball.position.distanceSquaredTo(pocket) > radiusSquared) continue;
@@ -254,14 +262,17 @@ class ShotSimulation {
   void _applyFriction(double dt) {
     for (final ball in balls) {
       if (!ball.active) continue;
-      final speed = ball.speed;
-      if (speed <= _stopSpeed) {
+      final velocity = ball.velocity;
+      if (velocity.x == 0 && velocity.y == 0) continue;
+      final speedSquared = velocity.lengthSquared;
+      if (speedSquared <= _stopSpeedSquared) {
         ball.velocity = Vec2.zero;
         continue;
       }
+      final speed = math.sqrt(speedSquared);
       final deceleration = 1.15 + 0.45 * speed;
       final nextSpeed = math.max(0.0, speed - deceleration * dt);
-      ball.velocity = nextSpeed <= _stopSpeed ? Vec2.zero : ball.velocity * (nextSpeed / speed);
+      ball.velocity = nextSpeed <= _stopSpeed ? Vec2.zero : velocity * (nextSpeed / speed);
     }
   }
 
