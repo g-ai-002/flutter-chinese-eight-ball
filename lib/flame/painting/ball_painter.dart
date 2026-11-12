@@ -9,51 +9,65 @@ import '../table_layout.dart';
 
 /// 绘制台面上的球体：落地阴影、球体渐变、花色球带与号码。
 class BallPainter {
-  final Map<String, TextPainter> _numbers = {};
-  final Map<String, ui.Picture> _pictures = {};
-  final Paint _shadowPaint = Paint()..color = Colors.black.withValues(alpha: 0.26);
-  int _radius = -1;
+  /// 球体显示列表统一按该基准半径录制，绘制时再缩放到实际球径。
+  ///
+  /// 显示列表记录的是矢量指令，缩放后依然清晰；这样窗口拖动、屏幕旋转
+  /// 或不同球台尺寸都不会触发 16 颗球与号码文字的重录。
+  static const double baseRadius = 24;
 
-  /// 球体按「球号 + 半径」缓存显示列表，位置变化只做画布平移。
+  final Map<String, TextPainter> _numbers = {};
+  final List<ui.Picture?> _pictures = [];
+
+  /// 软阴影用径向渐变代替逐球模糊，省掉每帧 16 次 MaskFilter。
+  final Paint _shadowPaint = Paint();
+  double _shadowRadius = -1;
+
+  /// 球体按「球号」缓存显示列表，位置与球径变化只做画布平移与缩放。
   void paintShadows(Canvas canvas, TableLayout layout, Iterable<BallState> balls) {
-    _sync(layout.ballRadius);
-    final offset = Offset(layout.ballRadius * 0.16, layout.ballRadius * 0.24);
+    final radius = layout.ballRadius;
+    _syncShadow(radius);
+    final offset = Offset(radius * 0.16, radius * 0.24);
     for (final ball in balls) {
       if (!ball.active) continue;
-      canvas.drawCircle(
-        layout.toCanvas(ball.position) + offset,
-        layout.ballRadius * 0.98,
-        _shadowPaint,
-      );
+      final center = layout.toCanvas(ball.position) + offset;
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.drawCircle(Offset.zero, radius * 0.98, _shadowPaint);
+      canvas.restore();
     }
   }
 
   void paintBall(Canvas canvas, TableLayout layout, BallState ball) {
-    _sync(layout.ballRadius);
-    final picture = _pictures.putIfAbsent('${ball.id}', () => _ball(ball, layout.ballRadius));
-    _draw(canvas, layout.toCanvas(ball.position), picture);
+    final picture = _pictureFor(ball);
+    _draw(canvas, layout.toCanvas(ball.position), picture, layout.ballRadius / baseRadius);
   }
 
-  void _draw(Canvas canvas, Offset center, ui.Picture picture) {
+  /// 按球号取显示列表，首次绘制时才录制；列表按需增长以适配任意球号。
+  ui.Picture _pictureFor(BallState ball) {
+    final id = ball.id;
+    if (id >= _pictures.length) _pictures.length = id + 1;
+    return _pictures[id] ??= _record((canvas) {
+      paintShape(canvas, ball, baseRadius);
+    });
+  }
+
+  void _draw(Canvas canvas, Offset center, ui.Picture picture, double scale) {
     canvas.save();
     canvas.translate(center.dx, center.dy);
+    if (scale != 1) canvas.scale(scale);
     canvas.drawPicture(picture);
     canvas.restore();
   }
 
-  void _sync(double radius) {
-    final key = radius.round();
-    if (key == _radius) return;
-    _radius = key;
-    _shadowPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 0.18);
-    for (final picture in _pictures.values) {
-      picture.dispose();
-    }
-    for (final painter in _numbers.values) {
-      painter.dispose();
-    }
-    _pictures.clear();
-    _numbers.clear();
+  void _syncShadow(double radius) {
+    if ((_shadowRadius - radius).abs() < 0.01) return;
+    _shadowRadius = radius;
+    _shadowPaint.shader = ui.Gradient.radial(
+      Offset.zero,
+      radius * 0.98,
+      [const Color(0x4D000000), const Color(0x3D000000), const Color(0x00000000)],
+      [0, 0.72, 1],
+    );
   }
 
   ui.Picture _record(void Function(Canvas) draw) {
@@ -62,13 +76,9 @@ class BallPainter {
     return recorder.endRecording();
   }
 
-  ui.Picture _ball(BallState ball, double radius) => _record((canvas) {
-    paintShape(canvas, ball, radius);
-  });
-
   /// 在原点绘制单颗球：全色球通体着色，花色球白色球身配彩色球带。
   ///
-  /// 两种球都按「球号 + 半径」缓存显示列表，位置变化只做画布平移。
+  /// 调用方按固定基准半径录制显示列表，缩放交给画布变换。
   void paintShape(Canvas canvas, BallState ball, double radius) {
     const center = Offset.zero;
     final accent = ball.isCue ? const Color(0xFFF7F3E7) : ballColorOf(ball.id);
