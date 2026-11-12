@@ -23,6 +23,9 @@ class TableScene {
   TableLayout? _layout;
   Size _layoutSize = Size.zero;
 
+  /// 是否有落袋动画还在播放；静止画面可以挂起渲染循环。
+  bool get isAnimating => _pots.isNotEmpty;
+
   TableLayout layoutFor(Size size) {
     final cached = _layout;
     if (cached != null && _layoutSize == size) return cached;

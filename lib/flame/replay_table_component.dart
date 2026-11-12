@@ -17,6 +17,9 @@ class ReplayTableComponent extends PositionComponent {
   final TableScene _scene = TableScene();
   final ShotAudio _audio = ShotAudio();
 
+  /// 球台上是否还有落袋动画，供回放入口判断能否挂起渲染循环。
+  bool get isAnimating => _scene.isAnimating;
+
   @override
   void update(double dt) {
     super.update(dt);

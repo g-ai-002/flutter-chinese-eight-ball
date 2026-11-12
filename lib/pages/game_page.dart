@@ -98,6 +98,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _onControllerChanged() {
+    _game?.wake();
     if (_controller.phase != MatchPhase.gameOver || _dialogOpen) return;
     _dialogOpen = true;
     WidgetsBinding.instance.addPostFrameCallback((_) => _showGameOver());
@@ -152,6 +153,7 @@ class _GamePageState extends State<GamePage> {
     Navigator.of(dialogContext).pop();
     await Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (_) => ReplayPage(record: record)));
+    _game?.wake();
     // 回放结束后回到终局球台，重新给出「再来一局」入口。
     if (!mounted || _controller.phase != MatchPhase.gameOver) return;
     _dialogOpen = true;
@@ -263,9 +265,22 @@ class _GamePageState extends State<GamePage> {
                   opacity: hudOpacity,
                   child: PowerControl(
                     power: _controller.power,
-                    onPowerChanged: _controller.setPower,
-                    onAimLeft: _controller.canAim ? () => _controller.adjustAim(-0.006) : null,
-                    onAimRight: _controller.canAim ? () => _controller.adjustAim(0.006) : null,
+                    onPowerChanged: (value) {
+                      _controller.setPower(value);
+                      game.wake();
+                    },
+                    onAimLeft: _controller.canAim
+                        ? () {
+                            _controller.adjustAim(-0.006);
+                            game.wake();
+                          }
+                        : null,
+                    onAimRight: _controller.canAim
+                        ? () {
+                            _controller.adjustAim(0.006);
+                            game.wake();
+                          }
+                        : null,
                     onShoot: _controller.shoot,
                     canShoot: _controller.canShoot,
                     singleRow: layout.singleRow,
@@ -344,6 +359,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _handlePointer(Offset local, Size size, {bool tap = false, bool startDrag = false}) {
+    _game?.wake();
     final pointer = TablePointer(TableLayout(size));
     var point = pointer.toTable(local);
 
@@ -382,6 +398,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _handlePointerEnd(Size size) {
+    _game?.wake();
     _dragBallId = null;
     if (_controller.phase != MatchPhase.placingCue) return;
     final preview = _placementPreview.value;
