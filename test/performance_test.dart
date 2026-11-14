@@ -8,8 +8,8 @@ import 'package:chinese_eight_ball/flame/table_layout.dart';
 import 'package:chinese_eight_ball/flame/table_scene.dart';
 import 'package:chinese_eight_ball/pages/widgets/power_control.dart';
 import 'package:chinese_eight_ball/theme/table_skin.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 BallState ball(int id, double x, double y) =>
     BallState(spec: BallSpec.fromId(id), position: Vec2(x, y));

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 球台配色：台呢、木质边框、袋口与刻度线。
 class TableSkin {

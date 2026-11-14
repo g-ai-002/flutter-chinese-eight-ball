@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 统计分区内的浅色提示文案，用于空数据占位。
 class StatsSectionHint extends StatelessWidget {

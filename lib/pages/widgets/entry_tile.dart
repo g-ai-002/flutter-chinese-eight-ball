@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 首页入口卡片：图标、标题、说明与箭头。
 class EntryTile extends StatelessWidget {

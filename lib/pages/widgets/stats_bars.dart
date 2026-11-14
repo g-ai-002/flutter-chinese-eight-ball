@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 统计页柱状图的一根柱子：柱高比例、可选的顶部圆点与上下标注。
 class StatsBar {

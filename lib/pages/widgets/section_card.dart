@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 设置页的分组卡片：标题 + 列表内容。
 class SectionCard extends StatelessWidget {

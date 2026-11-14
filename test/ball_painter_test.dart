@@ -5,8 +5,8 @@ import 'package:chinese_eight_ball/core/table_geometry.dart';
 import 'package:chinese_eight_ball/core/vec.dart';
 import 'package:chinese_eight_ball/flame/painting/ball_painter.dart';
 import 'package:chinese_eight_ball/flame/table_layout.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 花色球必须是白色球身 + 彩色球带，全色球通体着色。
 /// 采样球体上沿（球身）与球带中线（球带）两个像素做区分。

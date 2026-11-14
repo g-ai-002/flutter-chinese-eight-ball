@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 空数据占位：图标、标题与引导文案，最近对局与数据统计共用。
 class EmptyState extends StatelessWidget {
