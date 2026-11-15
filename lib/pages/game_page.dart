@@ -331,6 +331,7 @@ class _GamePageState extends State<GamePage> {
               onPanStart: (details) => _handlePointer(details.localPosition, size, startDrag: true),
               onPanUpdate: (details) => _handlePointer(details.localPosition, size),
               onPanEnd: (_) => _handlePointerEnd(size),
+              onPanCancel: () => _handlePointerEnd(size),
               child: const SizedBox.expand(),
             ),
           ),
@@ -403,7 +404,10 @@ class _GamePageState extends State<GamePage> {
 
   void _handlePointerEnd(Size size) {
     _game?.wake();
+    final movedBall = _dragBallId != null;
     _dragBallId = null;
+    // 摆球位置在拖动中已实时生效，手势结束才同步一次界面状态。
+    if (movedBall) _controller.finishBallDrag();
     if (_controller.phase != MatchPhase.placingCue) return;
     final preview = _placementPreview.value;
     _placementPreview.value = null;

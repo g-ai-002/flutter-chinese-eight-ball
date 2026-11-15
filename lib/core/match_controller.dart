@@ -227,6 +227,9 @@ class MatchController extends ChangeNotifier {
   }
 
   /// 练习模式移动一颗球，位置合法才生效。
+  ///
+  /// 拖动过程中只更新坐标，由 Flame 下一帧直接取用；界面状态在拖动结束
+  /// 时通过 [finishBallDrag] 同步一次，避免每个手势事件都整页重建。
   bool moveBall(int id, Vec2 position) {
     if (!isPractice || !_practice.editing) return false;
     if (!TableGeometry.isValidBallPlacement(position, obstacles: balls, ignoreId: id)) {
@@ -237,10 +240,14 @@ class MatchController extends ChangeNotifier {
       ball.position = position;
       ball.velocity = Vec2.zero;
       if (ball.isCue) aimAngle = angleOf(position, TableGeometry.footSpot);
-      notifyListeners();
       return true;
     }
     return false;
+  }
+
+  /// 摆球拖动结束：球位已在拖动中实时生效，这里只同步一次界面状态。
+  void finishBallDrag() {
+    if (isPractice && _practice.editing) notifyListeners();
   }
 
   /// 练习模式：切换球型模板，清空杆数与上一杆快照。

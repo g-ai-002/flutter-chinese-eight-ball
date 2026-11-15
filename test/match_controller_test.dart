@@ -334,6 +334,28 @@ void main() {
     expect(controller.isEditingBalls, isFalse);
   });
 
+  test('拖动摆球只在手势结束时通知一次界面', () {
+    final controller = MatchController(
+      mode: GameMode.practice,
+      autoPlayAi: false,
+    );
+    addTearDown(controller.dispose);
+
+    controller.beginBallEdit();
+    var notified = 0;
+    controller.addListener(() => notified++);
+
+    // 拖动过程中球位实时生效，但不触发整页重建。
+    expect(controller.moveBall(1, TableGeometry.center), isTrue);
+    const moved = Vec2(TableGeometry.width * 0.4, TableGeometry.height * 0.5);
+    expect(controller.moveBall(1, moved), isTrue);
+    expect(notified, 0);
+    expect(controller.balls.firstWhere((ball) => ball.id == 1).position, moved);
+
+    controller.finishBallDrag();
+    expect(notified, 1);
+  });
+
   test('练习模式出杆后不换人，并可重打恢复球局', () {
     final controller = MatchController(
       mode: GameMode.practice,
