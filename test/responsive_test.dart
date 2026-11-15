@@ -264,6 +264,53 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('桌面默认窗口一屏显示首页全部入口并垂直居中', (tester) async {
+    // Windows 默认窗口 1200 × 820：入口较多时压缩首屏横幅，全部内容一屏可见。
+    tester.view.physicalSize = const Size(1200, 820);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(
+      ChangeNotifierProvider<SettingsProvider>(
+        create: (_) => SettingsProvider(storage),
+        child: MaterialApp(theme: buildLightTheme(), home: const HomePage()),
+      ),
+    );
+    await tester.pump();
+
+    final content = tester.getRect(find.byKey(const Key('home-content')));
+    final topGap = content.top - 14;
+    final bottomGap = 820 - content.bottom - 24;
+    expect(content.bottom, lessThan(820), reason: '设置入口与版本号应在首屏内');
+    expect((topGap - bottomGap).abs(), lessThanOrEqualTo(1.0));
+    expect(find.text('设置'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('平板首页保持完整横幅并居中', (tester) async {
+    tester.view.physicalSize = const Size(800, 1280);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(
+      ChangeNotifierProvider<SettingsProvider>(
+        create: (_) => SettingsProvider(storage),
+        child: MaterialApp(theme: buildLightTheme(), home: const HomePage()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('落 袋 为 安'), findsOneWidget);
+    final content = tester.getRect(find.byKey(const Key('home-content')));
+    final topGap = content.top - 14;
+    final bottomGap = 1280 - content.bottom - 24;
+    expect((topGap - bottomGap).abs(), lessThanOrEqualTo(1.0));
+    expect(topGap, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('数据统计页在 2 倍字号下不溢出', (tester) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1;

@@ -50,9 +50,12 @@ class HomePage extends StatelessWidget {
                 final twoColumns = constraints.maxWidth >= 620;
                 final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
                 final contentWidth = math.min(constraints.maxWidth - horizontal * 2, 760.0);
-                final heroCompact = constraints.maxHeight < 520;
+                // 双列入口在桌面默认窗口下已接近一屏高度，高度不足时压缩首屏
+                // 横幅（去掉装饰行与副标题），让全部入口一屏可见并整体居中。
+                final heroCompact =
+                    constraints.maxHeight < 520 || (twoColumns && constraints.maxHeight < 900);
                 // 缩略图限宽并限高，桌面与横屏首屏也能看到玩法入口。
-                final previewRatio = (heroCompact ? 0.32 : 0.42) * TableLayout.aspectRatio;
+                final previewRatio = (heroCompact ? 0.26 : 0.42) * TableLayout.aspectRatio;
                 final previewWidth = math.max(
                   0.0,
                   math.min(contentWidth, math.min(480.0, constraints.maxHeight * previewRatio)),
