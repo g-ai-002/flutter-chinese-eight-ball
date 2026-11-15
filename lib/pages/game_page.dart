@@ -55,6 +55,7 @@ class _GamePageState extends State<GamePage> {
   final ValueNotifier<Vec2?> _placementPreview = ValueNotifier(null);
   SettingsProvider? _settings;
   EightBallGame? _game;
+  ThemeData? _immersiveTheme;
   bool _dialogOpen = false;
   bool _panelOpen = false;
   int? _dragBallId;
@@ -215,8 +216,11 @@ class _GamePageState extends State<GamePage> {
         TableOrientation.sync(constraints.biggest);
         final hint = gameHint(_controller);
         // 5% 底板铺在深色台呢上，浮层换用深色主题的浅色文字与黄铜控件。
+        // 主题只随字体变化，缓存后回合切换不再重复构建 ThemeData。
         final hudTheme = layout.immersive
-            ? buildDarkTheme(fontFamily: theme.textTheme.bodyMedium?.fontFamily)
+            ? (_immersiveTheme ??= buildDarkTheme(
+                fontFamily: theme.textTheme.bodyMedium?.fontFamily,
+              ))
             : theme;
         final hudOpacity = layout.immersive ? HudSurface.immersiveOpacity : 0.94;
         return Theme(
