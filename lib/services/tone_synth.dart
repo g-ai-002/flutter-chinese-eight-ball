@@ -152,6 +152,10 @@ Uint8List synthesizeMusicWav({int sampleRate = kMusicSampleRate}) {
   return _encodePcm(mix, sampleRate);
 }
 
+/// 后台 isolate 的合成入口：背景音乐约 25 万个采样，放在主 isolate 会卡住首帧。
+Uint8List synthesizeMusicWavBackground(int sampleRate) =>
+    synthesizeMusicWav(sampleRate: sampleRate);
+
 /// 把 [-1,1] 的浮点混音编码为 16 位单声道 WAV。
 Uint8List _encodePcm(Float64List mix, int sampleRate) {
   final totalSamples = mix.length;

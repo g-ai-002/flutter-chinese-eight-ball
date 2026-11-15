@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'log_service.dart';
@@ -24,8 +25,14 @@ class MusicService {
   static AudioSource? _source;
   static SoundHandle? _handle;
   static Future<void>? _starting;
+  static Uint8List? _clip;
   static bool _failed = false;
   static bool _suspended = false;
+
+  /// 首帧渲染完成后再合成与播放，避免背景音乐合成卡住启动画面。
+  static void startAfterFirstFrame() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(start()));
+  }
 
   static Future<void> start() async {
     if (!enabled || _suspended) return;
@@ -52,7 +59,7 @@ class MusicService {
     try {
       final soloud = SoLoud.instance;
       if (!soloud.isInitialized) await soloud.init();
-      _source ??= await soloud.loadMem('eightball-bgm.wav', synthesizeMusicWav());
+      _source ??= await soloud.loadMem('eightball-bgm.wav', await _musicClip());
     } catch (error) {
       _failed = true;
       debugPrint('[MusicService] 背景音乐加载失败: $error');
@@ -67,6 +74,16 @@ class MusicService {
       // 浏览器未获得用户手势时可能拒绝播放，保留音源等待下一次点击重试。
       debugPrint('[MusicService] 背景音乐等待用户操作: $error');
     }
+  }
+
+  /// 合成结果只做一次：Web 无后台 isolate 直接合成，其余平台交给后台 isolate。
+  static Future<Uint8List> _musicClip() async {
+    final cached = _clip;
+    if (cached != null) return cached;
+    final clip = kIsWeb
+        ? synthesizeMusicWav()
+        : await compute(synthesizeMusicWavBackground, kMusicSampleRate);
+    return _clip = clip;
   }
 
   static Future<void> setEnabled(bool value) async {
@@ -137,6 +154,7 @@ class MusicService {
     _source = null;
     _handle = null;
     _starting = null;
+    _clip = null;
     _failed = false;
     _suspended = false;
   }

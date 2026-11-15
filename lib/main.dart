@@ -31,7 +31,8 @@ Future<void> main() async {
   LogService.info('应用启动: ${AppConstants.appName} v${AppConstants.version}');
   unawaited(SoundService.init());
   MusicService.enabled = storage.musicEnabled;
-  if (storage.musicEnabled && !kIsWeb) unawaited(MusicService.start());
+  // 背景音乐合成较重，等首帧渲染后再在后台 isolate 合成，启动画面不再卡顿。
+  if (storage.musicEnabled && !kIsWeb) MusicService.startAfterFirstFrame();
 
   runApp(EightBallApp(storage: storage));
 }
