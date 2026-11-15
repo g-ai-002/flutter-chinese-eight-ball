@@ -77,4 +77,25 @@ void main() {
     expect(notified, 2);
     expect(storage.logicRate, LogicRate.hz30);
   });
+
+  test('渲染循环读取的偏好先更新内存再落盘', () async {
+    final storage = await StorageService.instance;
+    final provider = SettingsProvider(storage);
+
+    // 逐帧读取的字段不等写盘完成就返回新值，滑杆与配色切换立即生效。
+    final rateWrite = provider.setLogicRate(LogicRate.hz120);
+    expect(provider.logicRate, LogicRate.hz120);
+    await rateWrite;
+    expect(storage.logicRate, LogicRate.hz120);
+
+    final skinWrite = provider.setTableSkin(kTableSkins[1]);
+    expect(provider.tableSkin.id, kTableSkins[1].id);
+    await skinWrite;
+    expect(storage.tableSkinId, kTableSkins[1].id);
+
+    final guideWrite = provider.setShowAimGuide(false);
+    expect(provider.showAimGuide, isFalse);
+    await guideWrite;
+    expect(storage.showAimGuide, isFalse);
+  });
 }

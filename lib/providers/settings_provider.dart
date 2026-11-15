@@ -10,12 +10,22 @@ import '../services/storage_service.dart';
 import '../theme/table_skin.dart';
 
 /// 用户偏好：主题、球台配色、AI 难度、开球先后与音效反馈。
+///
+/// 逻辑速率、球台配色与瞄准辅助会被渲染循环逐帧读取，因此在构造时读入
+/// 内存字段，改动时先更新字段再落盘，避免每帧查偏好表与解析字符串。
 class SettingsProvider extends ChangeNotifier {
-  SettingsProvider(this._storage) {
+  SettingsProvider(this._storage)
+    : _logicRate = _storage.logicRate,
+      _tableSkin = tableSkinOf(_storage.tableSkinId),
+      _showAimGuide = _storage.showAimGuide {
     _syncFeedback();
   }
 
   final StorageService _storage;
+
+  LogicRate _logicRate;
+  TableSkin _tableSkin;
+  bool _showAimGuide;
 
   bool get darkMode => _storage.darkMode;
   Future<void> setDarkMode(bool value) => _update(() => _storage.setDarkMode(value));
@@ -29,14 +39,26 @@ class SettingsProvider extends ChangeNotifier {
   int get humanSide => _storage.humanSide;
   Future<void> setHumanSide(int value) => _update(() => _storage.setHumanSide(value));
 
-  LogicRate get logicRate => _storage.logicRate;
-  Future<void> setLogicRate(LogicRate value) => _update(() => _storage.setLogicRate(value));
+  LogicRate get logicRate => _logicRate;
 
-  TableSkin get tableSkin => tableSkinOf(_storage.tableSkinId);
-  Future<void> setTableSkin(TableSkin value) => _update(() => _storage.setTableSkinId(value.id));
+  Future<void> setLogicRate(LogicRate value) {
+    _logicRate = value;
+    return _update(() => _storage.setLogicRate(value));
+  }
 
-  bool get showAimGuide => _storage.showAimGuide;
-  Future<void> setShowAimGuide(bool value) => _update(() => _storage.setShowAimGuide(value));
+  TableSkin get tableSkin => _tableSkin;
+
+  Future<void> setTableSkin(TableSkin value) {
+    _tableSkin = value;
+    return _update(() => _storage.setTableSkinId(value.id));
+  }
+
+  bool get showAimGuide => _showAimGuide;
+
+  Future<void> setShowAimGuide(bool value) {
+    _showAimGuide = value;
+    return _update(() => _storage.setShowAimGuide(value));
+  }
 
   bool get soundEnabled => _storage.soundEnabled;
   Future<void> setSoundEnabled(bool value) => _update(() async {
