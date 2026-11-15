@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ import '../flame/table_layout.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
+import '../utils/system_ui.dart';
 import 'game_page.dart';
 import 'help_page.dart';
 import 'history_page.dart';
@@ -25,71 +27,86 @@ class HomePage extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final background = isDark
+        ? const [Color(0xFF18211D), Color(0xFF0C110E)]
+        : const [Color(0xFFF8F3E6), Color(0xFFE8EEDF)];
     final entries = _entries(context, settings, colors);
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? const [Color(0xFF18211D), Color(0xFF0C110E)]
-                : const [Color(0xFFF8F3E6), Color(0xFFE8EEDF)],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // 状态栏透明边到边，图标深浅跟随渐变顶部，浅色主题也不会看不清。
+      value: systemOverlayStyleFor(background.first),
+      child: Scaffold(
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: background,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final twoColumns = constraints.maxWidth >= 620;
-              final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
-              final contentWidth = math.min(constraints.maxWidth - horizontal * 2, 760.0);
-              final heroCompact = constraints.maxHeight < 520;
-              // 缩略图限宽并限高，桌面与横屏首屏也能看到玩法入口。
-              final previewRatio = (heroCompact ? 0.32 : 0.42) * TableLayout.aspectRatio;
-              final previewWidth = math.max(
-                0.0,
-                math.min(contentWidth, math.min(480.0, constraints.maxHeight * previewRatio)),
-              );
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(horizontal, 14, horizontal, 24),
-                child: Center(
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final twoColumns = constraints.maxWidth >= 620;
+                final horizontal = constraints.maxWidth >= 900 ? 40.0 : 20.0;
+                final contentWidth = math.min(constraints.maxWidth - horizontal * 2, 760.0);
+                final heroCompact = constraints.maxHeight < 520;
+                // 缩略图限宽并限高，桌面与横屏首屏也能看到玩法入口。
+                final previewRatio = (heroCompact ? 0.32 : 0.42) * TableLayout.aspectRatio;
+                final previewWidth = math.max(
+                  0.0,
+                  math.min(contentWidth, math.min(480.0, constraints.maxHeight * previewRatio)),
+                );
+                const topPadding = 14.0;
+                const bottomPadding = 24.0;
+                return SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(horizontal, topPadding, horizontal, bottomPadding),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 760),
-                    child: Column(
-                      children: [
-                        _TopBar(darkMode: settings.darkMode),
-                        const SizedBox(height: 18),
-                        _Hero(
-                          skin: settings.tableSkin,
-                          previewWidth: previewWidth,
-                          compact: heroCompact,
-                        ),
-                        const SizedBox(height: 26),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
+                    // 竖向空间充足时整页内容居中，不足时照常从上往下滚动。
+                    constraints: BoxConstraints(
+                      minHeight: math.max(0.0, constraints.maxHeight - topPadding - bottomPadding),
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 760),
+                        child: Column(
+                          key: const Key('home-content'),
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            for (final entry in entries)
-                              SizedBox(
-                                width: twoColumns ? (contentWidth - 12) / 2 : contentWidth,
-                                child: entry,
+                            _TopBar(darkMode: settings.darkMode),
+                            const SizedBox(height: 18),
+                            _Hero(
+                              skin: settings.tableSkin,
+                              previewWidth: previewWidth,
+                              compact: heroCompact,
+                            ),
+                            const SizedBox(height: 26),
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                for (final entry in entries)
+                                  SizedBox(
+                                    width: twoColumns ? (contentWidth - 12) / 2 : contentWidth,
+                                    child: entry,
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 22),
+                            Text(
+                              'v${AppConstants.version} · 本地运行，无需联网',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
                               ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 22),
-                        Text(
-                          'v${AppConstants.version} · 本地运行，无需联网',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

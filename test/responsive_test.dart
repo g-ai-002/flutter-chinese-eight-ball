@@ -13,6 +13,7 @@ import 'package:chinese_eight_ball/providers/settings_provider.dart';
 import 'package:chinese_eight_ball/services/match_history_service.dart';
 import 'package:chinese_eight_ball/services/storage_service.dart';
 import 'package:chinese_eight_ball/theme/app_theme.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -230,6 +231,36 @@ void main() {
     final preview = tester.getSize(find.byType(TablePreview));
     expect(preview.width, lessThanOrEqualTo(480));
     expect(tester.getBottomLeft(find.text('双人对战')).dy, lessThan(800));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('首页竖向空间充足时整页内容垂直居中', (tester) async {
+    tester.view.physicalSize = const Size(1280, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final storage = await StorageService.instance;
+    await tester.pumpWidget(
+      ChangeNotifierProvider<SettingsProvider>(
+        create: (_) => SettingsProvider(storage),
+        child: MaterialApp(theme: buildLightTheme(), home: const HomePage()),
+      ),
+    );
+    await tester.pump();
+
+    final content = tester.getRect(find.byKey(const Key('home-content')));
+    // 上下留白为 14 与 24，居中后两侧空白应相等。
+    final topGap = content.top - 14;
+    final bottomGap = 1000 - content.bottom - 24;
+    expect((topGap - bottomGap).abs(), lessThanOrEqualTo(1.0));
+    expect(topGap, greaterThan(0));
+
+    // 渐变铺满整页，状态栏透明并按浅色底色配深色图标。
+    final region = tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(
+      find.byType(AnnotatedRegion<SystemUiOverlayStyle>).first,
+    );
+    expect(region.value.statusBarColor, Colors.transparent);
+    expect(region.value.statusBarIconBrightness, Brightness.dark);
     expect(tester.takeException(), isNull);
   });
 
