@@ -37,28 +37,29 @@
 
 ## 下载
 
-v0.7.14（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.7.14)
+v0.7.15（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-chinese-eight-ball/releases/tag/v0.7.15)
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-chinese-eight-ball-0.7.14-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.7.14-windows-x86_64.zip` |
-| Web | `flutter-chinese-eight-ball-0.7.14-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-chinese-eight-ball-0.7.15-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-chinese-eight-ball-0.7.15-windows-x86_64.zip` |
+| Web | `flutter-chinese-eight-ball-0.7.15-web.zip`（解压后起静态服务器） |
 
-Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.7.14/` 与 `debug/`），可直接部署为静态站点。
+Web 产物同时发布到 `tea-pages` 分支（`index.html`、`v0.7.15/` 与 `debug/`），可直接部署为静态站点。
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.7.15 | 升级音频引擎 flutter_soloud 至 5.3.0，跟进混音 / 解码加固、Web 资源路径与 Windows 退出修复 |
 | 0.7.14 | 启动与交互优化：日志与音频初始化推迟到首帧后、练习摆球拖动不再整页重建、逐帧偏好内存缓存，首页默认窗口一屏居中 |
 | 0.7.13 | 启动与首页优化：背景音乐首帧后后台合成、首页缩略图缓存显示列表、首页全屏渐变垂直居中 |
 | 0.7.12 | 性能优化：静止画面挂起渲染循环、球体按基准半径缩放绘制、软阴影缓存、物理跳过静止球 |
 | 0.7.11 | 修复换人后力度被覆盖：力度按玩家分别记忆，轮到谁就恢复谁上次调节的力度 |
-| 0.7.10 | 修复浮层挡视线：沉浸布局顶部条与操作条只留 5% 底板，改用浅色文字与黄铜控件 |
 
 更早版本：
 
 | 版本 | 说明 |
 | --- | --- |
+| 0.7.10 | 修复浮层挡视线：沉浸布局顶部条与操作条只留 5% 底板，改用浅色文字与黄铜控件 |
 | 0.7.9 | 修复回放无音效：回放逐杆重放出杆 / 撞击 / 落袋声，与实时对局共用音效映射 |
 | 0.7.8 | 修复手机横屏球台过小：球台铺满整页，顶部条与操作条半透明叠在球台上下沿 |
 | 0.7.7 | 修复球局信息花色球图标与终局收束：球带清晰可见，结果弹窗不可被返回键关闭 |

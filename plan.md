@@ -82,7 +82,7 @@
   - [x] 音效与背景音乐继续使用 `init` / `loadMem` / `play` / `stop` / `setPause` / `getIsValidVoiceHandle`，未使用 5.3.0 变更语义的 Freeverb、Flanger、声部组淡出与滤波参数接口，无需迁移
   - [x] 静态分析零告警，303 个用例全部通过
   - [x] 源码保持在 10000 行以内（非空 9221 行）；版本号升级至 0.7.15，README 与规划同步
-  - [ ] 三端产物已发布（Android / Windows / Web）
+  - [x] 三端产物已发布（Android / Windows / Web），构建工作流 run 3373 全绿
 
 ### v0.7.14 (PATCH) — 2026-11-15
 
